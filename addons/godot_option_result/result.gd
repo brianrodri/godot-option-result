@@ -21,7 +21,7 @@ static func Err(e: Variant = null) -> Result:
 
 
 ## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise [code]Err(error_string(e))[/code].
-static func GdError(e: Error) -> Result:
+static func GdErr(e: Error) -> Result:
 	if e == Error.OK:
 		return Ok(Error.OK)
 	return Err(error_string(e))
