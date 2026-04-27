@@ -18,7 +18,7 @@ static func Err(e: Variant = null) -> Result:
 	return Result.new(false, e)
 
 
-## Returns [code]Ok(code)[/code] when [param code] is [constant @GlobalScope.OK], otherwise [code]Err(code)[/code].
+## Returns [code]Ok(code)[/code] when [param code] is [constant @GlobalScope.OK], otherwise [code]Err(error_name)[/code].
 static func GdError(code: Error) -> Result:
 	if code == Error.OK:
 		return Ok(Error.OK)
