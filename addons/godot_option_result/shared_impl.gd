@@ -26,4 +26,4 @@ static func equal_approx(value: Variant, other: Variant) -> bool:
 
 
 static func _compact_var_to_str(value: Variant) -> String:
-	return _MATCHING_CONSECUTIVE_NEW_LINES.sub(var_to_str(value).strip_edges().dedent(), " ", true).json_escape()
+	return _MATCHING_CONSECUTIVE_NEW_LINES.sub(var_to_str(value).strip_edges().dedent(), " ", true)

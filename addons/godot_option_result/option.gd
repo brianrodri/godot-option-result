@@ -25,7 +25,7 @@ func _init(is_some: bool = false, x: Variant = null) -> void:
 
 
 func _to_string() -> String:
-	return _SHARED_IMPL.format_compact("Some({0})", self._value) if self._is_some else "None"
+	return _SHARED_IMPL.format_compact("Option.Some({0})", self._value) if self._is_some else "Option.None"
 
 
 ## Returns whether [member self] is [code]Some(x)[/code].

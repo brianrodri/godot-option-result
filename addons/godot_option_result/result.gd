@@ -34,7 +34,7 @@ func _init(as_ok: bool, value: Variant) -> void:
 
 
 func _to_string() -> String:
-	return _SHARED_IMPL.format_compact("Ok({0})" if self._is_ok else "Err({0})", self._value)
+	return _SHARED_IMPL.format_compact("Result.Ok({0})" if self._is_ok else "Result.Err({0})", self._value)
 
 
 ## Returns whether [member self] is [code]Ok(x)[/code].
