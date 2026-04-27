@@ -29,7 +29,7 @@ Legend:
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`         |
 | `map(f)`                 | `map(f)`            |                                                              |
 | `map_or(d, f)`           | `map_or(d, f)`      |                                                              |
-| `map_or_call(d, f)`\*    | `map_or_else(d, f)` | lazy (`*_call`) counterpart to the eager `or_else`           |
+| `map_or_call(d, f)`\*    | `map_or_else(d, f)` | lazy (`*_call`) counterpart to the eager `map_or`            |
 | `flatten()`              | `flatten()`         |                                                              |
 | `keep_when(p)`\*         | `filter(p)`         | consistent two-word naming pattern for bool-ish operations   |
 | `drop_when(p)`           | —                   | for symmetry with `keep_when`                                |
