@@ -54,6 +54,13 @@ func is_none_or(p: Callable) -> bool:
 	return true
 
 
+## Calls [param f] when [member self] is [code]Some(x)[/code]. Returns [member self] regardless.
+func tee(f: Callable) -> Option:
+	if self._is_some:
+		f.call(self._value)
+	return self
+
+
 ## Returns [code]Ok(x)[/code] when [member self] is [code]Some(x)[/code], otherwise [code]Err(e)[/code].
 func ok_or(e: Variant) -> Result:
 	if self._is_some:

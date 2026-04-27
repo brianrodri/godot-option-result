@@ -38,13 +38,13 @@ Legend:
 | `or_else(other)`!        | `or(other)`         | `or` is a reserved keyword so chose to adopt `or_else`     |
 | `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`         |
 | `xor_with(other)`\*      | `xor(other)`        | consistent two-word naming pattern for bool-ish operations |
-| `is_equal(other)`        | —                   | Godot-specific                                             |
-| `is_equal_approx(other)` | —                   | Godot-specific                                             |
-| —                        | `inspect(f)`        | not implemented                                            |
+| `tee(f)`\*               | `inspect(f)`        | inspired by Python's `itertools.tee`                       |
 | —                        | `map_or(d, f)`      | not implemented                                            |
 | —                        | `map_or_else(d, f)` | not implemented                                            |
 | —                        | `zip(other)`        | not implemented                                            |
 | —                        | `transpose()`       | not implemented                                            |
+| `is_equal(other)`        | —                   | Godot-specific                                             |
+| `is_equal_approx(other)` | —                   | Godot-specific                                             |
 
 ### `Result`
 
