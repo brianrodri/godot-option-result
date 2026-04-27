@@ -189,7 +189,7 @@ func drop_when(p: Callable) -> Option:
 ## [/codeblock]
 func transpose() -> Result:
 	if not self._is_some:
-		return Result.Ok(self)
+		return Result.Ok(None)
 	if self._value is not Result:
 		return Result.GdErr(Error.ERR_INVALID_DATA)
 	var result_value: Result = self._value
