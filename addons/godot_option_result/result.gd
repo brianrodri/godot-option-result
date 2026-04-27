@@ -28,7 +28,7 @@ static func GdError(e: Error) -> Result:
 
 
 ## Private constructor.
-func _init(as_ok: bool, value: Variant = null) -> void:
+func _init(as_ok: bool, value: Variant) -> void:
 	self._is_ok = as_ok
 	self._value = value
 
@@ -57,42 +57,38 @@ func is_ok_and(p: Callable) -> bool:
 
 ## Returns whether [member self] is [code]Err(e)[/code] where [code]e[/code] satisfies the predicate [param p].
 func is_err_and(p: Callable) -> bool:
-	if not self._is_ok:
-		var passed: bool = p.call(self._value)
-		return passed
-	return false
+	if self._is_ok:
+		return false
+	var passed: bool = p.call(self._value)
+	return passed
 
 
-## Returns [code]Maybe(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]None[/code].[br]
-## [br]
-## As a consequence, when [member self] is [code]Ok(null)[/code], then the [Option] returned will be [code]None[/code]!
+## Returns [code]Some(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]None[/code].
 func ok() -> Option:
 	if self._is_ok:
-		return Option.Maybe(self._value)
+		return Option.Some(self._value)
 	return Option.None
 
 
-## Returns [code]Maybe(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]None[/code].[br]
-## [br]
-## As a consequence, when [member self] is [code]Err(null)[/code], then the [Option] returned will be [code]None[/code]!
+## Returns [code]Some(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]None[/code].
 func err() -> Option:
-	if not self._is_ok:
-		return Option.Maybe(self._value)
-	return Option.None
+	if self._is_ok:
+		return Option.None
+	return Option.Some(self._value)
 
 
 ## Returns [code]Ok(f(x))[/code] when [member self] is [code]Ok(x)[/code], otherwise [member self].
 func map(f: Callable) -> Result:
 	if self._is_ok:
-		return Result.new(true, f.call(self._value))
+		return Ok(f.call(self._value))
 	return self
 
 
 ## Returns [code]Err(f(e))[/code] when [member self] is [code]Err(e)[/code], otherwise [member self].
 func map_err(f: Callable) -> Result:
-	if not self._is_ok:
-		return Result.new(false, f.call(self._value))
-	return self
+	if self._is_ok:
+		return self
+	return Err(f.call(self._value))
 
 
 ## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise crashes the game with [method OS.crash].
@@ -100,6 +96,20 @@ func unwrap(e := "[method Result.unwrap] called on Err") -> Variant:
 	if not self._is_ok:
 		OS.crash(e)
 	return self._value
+
+
+## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise [param other].
+func unwrap_or(other: Variant) -> Variant:
+	if self._is_ok:
+		return self._value
+	return other
+
+
+## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]f(e)[/code] from [code]Err(e)[/code].
+func unwrap_or_call(f: Callable) -> Variant:
+	if self._is_ok:
+		return self._value
+	return f.call(self._value)
 
 
 ## Returns [code]e[/code] when [member self] is [code]Err(e)[/code], otherwise crashes the game with [method OS.crash].
@@ -128,19 +138,19 @@ func and_then_call(f: Callable) -> Result:
 
 ## Returns [param other] when [member self] is [code]Err(e)[/code], otherwise [member self].
 func or_else(other: Result) -> Result:
-	if not self._is_ok:
-		return other
-	return self
+	if self._is_ok:
+		return self
+	return other
 
 
 ## Returns [code]f(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [member self].[br]
 ## [br]
 ## [param f] must return [Result].
 func or_else_call(f: Callable) -> Result:
-	if not self._is_ok:
-		var other: Result = f.call(self._value)
-		return other
-	return self
+	if self._is_ok:
+		return self
+	var other: Result = f.call(self._value)
+	return other
 
 
 ## Returns whether [member self] and [param other] are strictly equal with [code]==[/code].
