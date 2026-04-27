@@ -61,20 +61,6 @@ func tee(f: Callable) -> Option:
 	return self
 
 
-## Returns [code]Ok(x)[/code] when [member self] is [code]Some(x)[/code], otherwise [code]Err(e)[/code].
-func ok_or(e: Variant) -> Result:
-	if self._is_some:
-		return Result.Ok(self._value)
-	return Result.Err(e)
-
-
-## Returns [code]Ok(x)[/code] when [member self] is [code]Some(x)[/code], otherwise [code]Err(f())[/code].
-func ok_or_call(f: Callable) -> Result:
-	if self._is_some:
-		return Result.Ok(self._value)
-	return Result.Err(f.call())
-
-
 ## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise crashes the game with [method OS.crash].
 func unwrap(e := "[method Option.unwrap] called on None") -> Variant:
 	if not self._is_some:
@@ -117,21 +103,18 @@ func map_or_call(d: Callable, f: Callable) -> Variant:
 	return d.call()
 
 
-## Returns [param other] when [member self] is [code]None[/code], otherwise [member self].
-func or_else(other: Option) -> Option:
-	if self._is_some:
+## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that satisfies the predicate [param p], otherwise [code]None[/code].
+func keep_when(p: Callable) -> Option:
+	if self._is_some and p.call(self._value):
 		return self
-	return other
+	return None
 
 
-## Returns [code]f()[/code] when [member self] is [code]None[/code], otherwise [member self].[br]
-## [br]
-## [param f] must return [Option].
-func or_else_call(f: Callable) -> Option:
-	if self._is_some:
+## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that [i]doesn't[/i] satisfy the predicate [param p], otherwise [code]None[/code].
+func drop_when(p: Callable) -> Option:
+	if self._is_some and not p.call(self._value):
 		return self
-	var other: Option = f.call()
-	return other
+	return None
 
 
 ## Returns [param other] when [member self] is [code]Some(x)[/code], otherwise [code]None[/code].
@@ -151,24 +134,27 @@ func and_then_call(f: Callable) -> Option:
 	return self
 
 
+## Returns [param other] when [member self] is [code]None[/code], otherwise [member self].
+func or_else(other: Option) -> Option:
+	if self._is_some:
+		return self
+	return other
+
+
+## Returns [code]f()[/code] when [member self] is [code]None[/code], otherwise [member self].[br]
+## [br]
+## [param f] must return [Option].
+func or_else_call(f: Callable) -> Option:
+	if self._is_some:
+		return self
+	var other: Option = f.call()
+	return other
+
+
 ## Returns [code]Some(x)[/code] when exactly one of [member self] and [param other] is [code]Some(x)[/code], otherwise [code]None[/code].
 func xor_with(other: Option) -> Option:
 	if self._is_some != other._is_some:
 		return self if self._is_some else other
-	return None
-
-
-## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that satisfies the predicate [param p], otherwise [code]None[/code].
-func keep_when(p: Callable) -> Option:
-	if self._is_some and p.call(self._value):
-		return self
-	return None
-
-
-## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that [i]doesn't[/i] satisfy the predicate [param p], otherwise [code]None[/code].
-func drop_when(p: Callable) -> Option:
-	if self._is_some and not p.call(self._value):
-		return self
 	return None
 
 
@@ -178,6 +164,20 @@ func flatten() -> Option:
 		var inner: Option = self._value
 		return inner
 	return self
+
+
+## Returns [code]Ok(x)[/code] when [member self] is [code]Some(x)[/code], otherwise [code]Err(e)[/code].
+func ok_or(e: Variant) -> Result:
+	if self._is_some:
+		return Result.Ok(self._value)
+	return Result.Err(e)
+
+
+## Returns [code]Ok(x)[/code] when [member self] is [code]Some(x)[/code], otherwise [code]Err(f())[/code].
+func ok_or_call(f: Callable) -> Result:
+	if self._is_some:
+		return Result.Ok(self._value)
+	return Result.Err(f.call())
 
 
 ## Transposes an [code]Option(Result)[/code] into a [code]Result(Option)[/code].
