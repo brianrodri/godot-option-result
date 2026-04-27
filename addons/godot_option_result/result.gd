@@ -4,7 +4,9 @@ extends RefCounted
 
 const _SHARED_IMPL := preload("res://addons/godot_option_result/shared_impl.gd")
 
+## MUST NOT BE CHANGED!
 var _is_ok: bool
+## MUST NOT BE CHANGED!
 var _value: Variant
 
 

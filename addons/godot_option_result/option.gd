@@ -7,6 +7,7 @@ const _SHARED_IMPL := preload("res://addons/godot_option_result/shared_impl.gd")
 ## [code]None[/code] holds nothing.
 static var None := new()
 
+## MUST NOT BE CHANGED!
 var _value: Variant
 
 
