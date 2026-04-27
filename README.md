@@ -59,12 +59,10 @@ Legend:
 | `is_err_and(p)`          | `is_err_and(p)`     |                                                                |
 | `tee(f)`                 | `inspect(f)`        | run side effects without influencing the original "pipeline"   |
 | `tee_err(f)`             | `inspect_err(f)`    | run side effects without influencing the original "pipeline"   |
-| `ok()`                   | `ok()`              |                                                                |
-| `err()`                  | `err()`             |                                                                |
 | `unwrap()`               | `unwrap()`          | crashes via `OS.crash` instead of panic                        |
+| `unwrap_err()`           | `unwrap_err()`      |                                                                |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                                |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`           |
-| `unwrap_err()`           | `unwrap_err()`      |                                                                |
 | `map(f)`                 | `map(f)`            |                                                                |
 | `map_err(f)`             | `map_err(f)`        |                                                                |
 | `map_or(d, f)`           | `map_or(d, f)`      |                                                                |
@@ -74,6 +72,8 @@ Legend:
 | `or_else(other)`!        | `or(other)`         | `or` is a reserved keyword; chose to adopt `or_else` instead   |
 | `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`             |
 | `flatten()`              | `flatten()`         |                                                                |
+| `ok()`                   | `ok()`              |                                                                |
+| `err()`                  | `err()`             |                                                                |
 | `transpose()`            | `transpose()`       |                                                                |
 | `is_equal(other)`        | —                   | Godot-specific                                                 |
 | `is_equal_approx(other)` | —                   | Godot-specific                                                 |
