@@ -23,7 +23,7 @@ Legend:
 | `is_some()`              | `is_some()`         |                                                              |
 | `is_none()`              | `is_none()`         |                                                              |
 | `is_some_and(p)`         | `is_some_and(f)`    |                                                              |
-| `is_none_or(f)`          | `is_none_or(f)`     |                                                              |
+| `is_none_or(p)`          | `is_none_or(f)`     |                                                              |
 | `unwrap()`               | `unwrap()`          | crashes via `OS.crash` instead of panic                      |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                              |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`         |
@@ -40,7 +40,7 @@ Legend:
 | `or_else(other)`!        | `or(other)`         | `or` is a reserved keyword so chose to adopt `or_else`       |
 | `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`           |
 | `xor_with(other)`\*      | `xor(other)`        | consistent two-word naming pattern for bool-ish operations   |
-| `tee(f)`\*               | `inspect(f)`        | inspired by Python's `itertools.tee`                         |
+| `tee(f)`\*               | `inspect(f)`        | run side effects without influencing the original "pipeline" |
 | `transpose()`            | `transpose()`       |                                                              |
 | `is_equal(other)`        | —                   | Godot-specific                                               |
 | `is_equal_approx(other)` | —                   | Godot-specific                                               |
