@@ -134,11 +134,11 @@ func xor_with_call(f: Callable) -> Option:
 	return None
 
 
-## Returns [code]Maybe(x)[/code] when [member self] is [code]Some(Maybe(x))[/code] (recursively), otherwise [member self].
+## Returns [code]Maybe(x)[/code] when [member self] is [code]Some(Maybe(x))[/code], otherwise [member self].
 func flatten() -> Option:
 	if self._value is not Option:
 		return self
-	return self._value.flatten()
+	return self._value
 
 
 ## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that satisfies the predicate [param p], otherwise [code]None[/code].
