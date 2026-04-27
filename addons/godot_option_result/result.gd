@@ -21,7 +21,7 @@ static func Err(e: Variant = null) -> Result:
 
 
 ## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise [code]Err(error_string(e))[/code].
-static func GdError(e: Error) -> Result:
+static func GdErr(e: Error) -> Result:
 	if e == Error.OK:
 		return Ok(Error.OK)
 	return Err(error_string(e))
@@ -151,6 +151,25 @@ func or_else_call(f: Callable) -> Result:
 		return self
 	var other: Result = f.call(self._value)
 	return other
+
+
+## Transposes a [code]Result(Option)[/code] into an [code]Option(Result)[/code].
+##
+## [codeblock]
+## self is Result.Ok(Option.None)    → Option.None
+## self is Result.Ok(Option.Some(x)) → Option.Some(Result.Ok(x))
+## self is Result.Err(e)             → Option.Some(Result.Err(e))
+## self is Result.Ok(_)              → Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
+## [/codeblock]
+func transpose() -> Option:
+	if not self._is_ok:
+		return Option.Some(self)
+	if self._value is not Option:
+		return Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
+	var option_value: Option = self._value
+	if option_value._is_some:
+		return Option.Some(Result.Ok(option_value._value))
+	return Option.None
 
 
 ## Returns whether [member self] and [param other] are strictly equal with [code]==[/code].

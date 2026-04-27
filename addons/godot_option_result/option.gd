@@ -38,6 +38,29 @@ func is_none() -> bool:
 	return not self._is_some
 
 
+## Returns whether [member self] is [code]Some(x)[/code] where [code]x[/code] satisfies predicate [param p].
+func is_some_and(p: Callable) -> bool:
+	if self._is_some:
+		var passed: bool = p.call(self._value)
+		return passed
+	return false
+
+
+## Returns whether [member self] is [code]None[/code] [i]or[/i] [code]Some(x)[/code] where [code]x[/code] satisfies predicate [param p].
+func is_none_or(p: Callable) -> bool:
+	if self._is_some:
+		var passed: bool = p.call(self._value)
+		return passed
+	return true
+
+
+## Calls [param f] when [member self] is [code]Some(x)[/code]. Returns [member self] regardless.
+func tee(f: Callable) -> Option:
+	if self._is_some:
+		f.call(self._value)
+	return self
+
+
 ## Returns [code]Ok(x)[/code] when [member self] is [code]Some(x)[/code], otherwise [code]Err(e)[/code].
 func ok_or(e: Variant) -> Result:
 	if self._is_some:
@@ -78,6 +101,20 @@ func map(f: Callable) -> Option:
 	if self._is_some:
 		return Some(f.call(self._value))
 	return self
+
+
+## Returns [code]f(x)[/code] when [member self] is [code]Some(x)[/code], otherwise [param d].
+func map_or(d: Variant, f: Callable) -> Variant:
+	if self._is_some:
+		return f.call(self._value)
+	return d
+
+
+## Returns [code]f(x)[/code] when [member self] is [code]Some(x)[/code], otherwise the return value of [param d].
+func map_or_call(d: Callable, f: Callable) -> Variant:
+	if self._is_some:
+		return f.call(self._value)
+	return d.call()
 
 
 ## Returns [param other] when [member self] is [code]None[/code], otherwise [member self].
@@ -140,6 +177,25 @@ func drop_when(p: Callable) -> Option:
 	if self._is_some and not p.call(self._value):
 		return self
 	return None
+
+
+## Transposes an [code]Option(Result)[/code] into a [code]Result(Option)[/code].
+##
+## [codeblock]
+## self is Option.None                → Result.Ok(Option.None)
+## self is Option.Some(Result.Ok(x))  → Result.Ok(Option.Some(x))
+## self is Option.Some(Result.Err(e)) → Result.Err(e)
+## self is Option.Some(_)             → Result.GdErr(Error.ERR_INVALID_DATA)
+## [/codeblock]
+func transpose() -> Result:
+	if not self._is_some:
+		return Result.Ok(None)
+	if self._value is not Result:
+		return Result.GdErr(Error.ERR_INVALID_DATA)
+	var result_value: Result = self._value
+	if result_value.is_err():
+		return result_value
+	return Result.Ok(Some(result_value._value))
 
 
 ## Returns whether the values of [member self] and [param other] are strictly equal with [code]==[/code].
