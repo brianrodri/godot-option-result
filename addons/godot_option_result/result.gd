@@ -61,14 +61,14 @@ func is_err_and(p: Callable) -> bool:
 	return false
 
 
-## Returns [code]Some(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]None[/code].
+## Returns [code]Maybe(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]None[/code].
 func ok() -> Option:
 	if self._is_ok:
 		return Option.Maybe(self._value)
 	return Option.None
 
 
-## Returns [code]Some(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]None[/code].
+## Returns [code]Maybe(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]None[/code].
 func err() -> Option:
 	if not self._is_ok:
 		return Option.Maybe(self._value)
@@ -78,14 +78,14 @@ func err() -> Option:
 ## Returns [code]Ok(f(x))[/code] when [member self] is [code]Ok(x)[/code], otherwise [member self].
 func map(f: Callable) -> Result:
 	if self._is_ok:
-		return Result.new(f.call(self._value), true)
+		return Result.new(true, f.call(self._value))
 	return self
 
 
 ## Returns [code]Err(f(e))[/code] when [member self] is [code]Err(e)[/code], otherwise [member self].
 func map_err(f: Callable) -> Result:
 	if not self._is_ok:
-		return Result.new(f.call(self._value), false)
+		return Result.new(false, f.call(self._value))
 	return self
 
 
@@ -117,7 +117,7 @@ func and_then(other: Result) -> Result:
 ## [param f] must return [Result].
 func and_then_call(f: Callable) -> Result:
 	if self._is_ok:
-		var other: Result = f.call()
+		var other: Result = f.call(self._value)
 		return other
 	return self
 
@@ -134,7 +134,7 @@ func or_else(other: Result) -> Result:
 ## [param f] must return [Result].
 func or_else_call(f: Callable) -> Result:
 	if not self._is_ok:
-		var other: Result = f.call()
+		var other: Result = f.call(self._value)
 		return other
 	return self
 

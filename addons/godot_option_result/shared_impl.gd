@@ -60,10 +60,11 @@ static func equal_approx(value: Variant, other: Variant) -> bool:
 			return false
 		TYPE_FLOAT:
 			return is_equal_approx(value, other)
-		TYPE_OBJECT when value.has_method("is_equal_approx") | \
+		TYPE_OBJECT when value.has_method(&"is_equal_approx"):
+			return value.is_equal_approx(other)
 		# HINT: These types were sourced by searching for `is_equal_approx` using Godot Editor's "Search Help" modal.
-		TYPE_AABB | TYPE_BASIS | TYPE_COLOR | TYPE_PLANE | TYPE_QUATERNION | TYPE_RECT2 | \
-		TYPE_TRANSFORM2D | TYPE_TRANSFORM3D | TYPE_VECTOR2 | TYPE_VECTOR3 | TYPE_VECTOR4:
+		TYPE_AABB, TYPE_BASIS, TYPE_COLOR, TYPE_PLANE, TYPE_QUATERNION, TYPE_RECT2, \
+		TYPE_TRANSFORM2D, TYPE_TRANSFORM3D, TYPE_VECTOR2, TYPE_VECTOR3, TYPE_VECTOR4:
 			return value.is_equal_approx(other)
 		_:
 			return value == other

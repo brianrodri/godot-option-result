@@ -76,10 +76,10 @@ func unwrap_or_call(f: Callable) -> Variant:
 	return f.call()
 
 
-## Returns [code]Some(f(x))[/code] when [member self] is [code]Some(x)[/code], otherwise [code]None[/code].
+## Returns [code]Maybe(f(x))[/code] when [member self] is [code]Some(x)[/code], otherwise [code]None[/code].
 func map(f: Callable) -> Option:
 	if self._value != null:
-		return Some(f.call(self._value))
+		return Maybe(f.call(self._value))
 	return self
 
 
