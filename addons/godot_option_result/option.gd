@@ -158,13 +158,6 @@ func xor_with(other: Option) -> Option:
 	return None
 
 
-## Returns [Option] when [member self] is [code]Some(Option)[/code], otherwise [member self].
-func flatten() -> Option:
-	if self._is_some and self._value is Option:
-		return self._value
-	return self
-
-
 ## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that satisfies the predicate [param p], otherwise [code]None[/code].
 func keep_when(p: Callable) -> Option:
 	if self._is_some and p.call(self._value):
@@ -177,6 +170,14 @@ func drop_when(p: Callable) -> Option:
 	if self._is_some and not p.call(self._value):
 		return self
 	return None
+
+
+## Returns [Option] when [member self] is [code]Some(Option)[/code], otherwise [member self].
+func flatten() -> Option:
+	if self._is_some and self._value is Option:
+		var inner: Option = self._value
+		return inner
+	return self
 
 
 ## Transposes an [code]Option(Result)[/code] into a [code]Result(Option)[/code].

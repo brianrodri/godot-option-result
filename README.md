@@ -52,6 +52,7 @@ Legend:
 | ------------------------ | ------------------- | -------------------------------------------------------------- |
 | `Ok(x)`                  | `Ok(x)`             |                                                                |
 | `Err(e)`                 | `Err(e)`            |                                                                |
+| `GdErr(e)`               | —                   | Godot-specific                                                 |
 | `is_ok()`                | `is_ok()`           |                                                                |
 | `is_err()`               | `is_err()`          |                                                                |
 | `is_ok_and(p)`           | `is_ok_and(p)`      |                                                                |
@@ -64,16 +65,15 @@ Legend:
 | `unwrap_err()`           | `unwrap_err()`      |                                                                |
 | `map(f)`                 | `map(f)`            |                                                                |
 | `map_err(f)`             | `map_err(f)`        |                                                                |
+| `map_or(d, f)`           | `map_or(d, f)`      |                                                                |
+| `map_or_else(d, f)`      | `map_or_else(d, f)` |                                                                |
 | `and_then(other)`!       | `and(other)`        | `and` is a reserved keyword; chose to adopt `and_then` instead |
 | `and_then_call(f)`\*     | `and_then(f)`       | lazy (`*_call`) counterpart to the eager `and_then`            |
 | `or_else(other)`!        | `or(other)`         | `or` is a reserved keyword; chose to adopt `or_else` instead   |
 | `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`             |
+| `flatten()`              | `flatten()`         |                                                                |
 | `transpose()`            | `transpose()`       |                                                                |
-| `GdErr(e)`               | —                   | Godot-specific                                                 |
 | `is_equal(other)`        | —                   | Godot-specific                                                 |
 | `is_equal_approx(other)` | —                   | Godot-specific                                                 |
-| —                        | `inspect(f)`        | not implemented                                                |
-| —                        | `inspect_err(f)`    | not implemented                                                |
-| —                        | `map_or(d, f)`      | not implemented                                                |
-| —                        | `map_or_else(d, f)` | not implemented                                                |
-| —                        | `flatten()`         | not implemented                                                |
+| `tee(f)`                 | `inspect(f)`        | inspired by Python's `itertools.tee`                           |
+| `tee_err(f)`             | `inspect_err(f)`    | inspired by Python's `itertools.tee`                           |
