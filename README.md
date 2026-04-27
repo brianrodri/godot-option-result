@@ -28,6 +28,8 @@ Legend:
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                            |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`       |
 | `map(f)`                 | `map(f)`            |                                                            |
+| `map_or(d, f)`           | `map_or(d, f)`      |                                                            |
+| `map_or_call(d, f)`\*    | `map_or_else(d, f)` | lazy (`*_call`) counterpart to the eager `or_else`         |
 | `flatten()`              | `flatten()`         |                                                            |
 | `keep_when(p)`\*         | `filter(p)`         | consistent two-word naming pattern for bool-ish operations |
 | `drop_when(p)`           | —                   | for symmetry with `keep_when`                              |
@@ -39,8 +41,6 @@ Legend:
 | `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`         |
 | `xor_with(other)`\*      | `xor(other)`        | consistent two-word naming pattern for bool-ish operations |
 | `tee(f)`\*               | `inspect(f)`        | inspired by Python's `itertools.tee`                       |
-| —                        | `map_or(d, f)`      | not implemented                                            |
-| —                        | `map_or_else(d, f)` | not implemented                                            |
 | —                        | `zip(other)`        | not implemented                                            |
 | —                        | `transpose()`       | not implemented                                            |
 | `is_equal(other)`        | —                   | Godot-specific                                             |

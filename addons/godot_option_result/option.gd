@@ -103,6 +103,20 @@ func map(f: Callable) -> Option:
 	return self
 
 
+## Returns [code]f(x)[/code] when [member self] is [code]Some(x)[/code], otherwise [param d].
+func map_or(d: Variant, f: Callable) -> Variant:
+	if self._is_some:
+		return f.call(self._value)
+	return d
+
+
+## Returns [code]f(x)[/code] when [member self] is [code]Some(x)[/code], otherwise the return value of [param d].
+func map_or_call(d: Callable, f: Callable) -> Variant:
+	if self._is_some:
+		return f.call(self._value)
+	return d.call()
+
+
 ## Returns [param other] when [member self] is [code]None[/code], otherwise [member self].
 func or_else(other: Option) -> Option:
 	if self._is_some:
