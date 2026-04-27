@@ -20,11 +20,11 @@ static func Err(e: Variant = null) -> Result:
 	return Result.new(false, e)
 
 
-## Returns [code]Ok(code)[/code] when [param code] is [constant @GlobalScope.OK], otherwise [code]Err(error_name)[/code].
-static func GdError(code: Error) -> Result:
-	if code == Error.OK:
+## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise [code]Err(error_string(e))[/code].
+static func GdError(e: Error) -> Result:
+	if e == Error.OK:
 		return Ok(Error.OK)
-	return Err(_SHARED_IMPL.ERR_NAMES.get(code, "GdError called with unexpected [enum @GlobalScope.Error]"))
+	return Err(error_string(e))
 
 
 ## Private constructor.
