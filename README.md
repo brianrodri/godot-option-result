@@ -16,35 +16,35 @@ Legend:
 
 ### `Option`
 
-| GDScript                 | Rust                | Notes                                                      |
-| ------------------------ | ------------------- | ---------------------------------------------------------- |
-| `Some(x)`                | `Some(x)`           |                                                            |
-| `None`                   | `None`              |                                                            |
-| `is_some()`              | `is_some()`         |                                                            |
-| `is_none()`              | `is_none()`         |                                                            |
-| `is_some_and(p)`         | `is_some_and(f)`    |                                                            |
-| `is_none_or(f)`          | `is_none_or(f)`     |                                                            |
-| `unwrap()`               | `unwrap()`          | crashes via `OS.crash` instead of panic                    |
-| `unwrap_or(other)`       | `unwrap_or(other)`  |                                                            |
-| `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`       |
-| `map(f)`                 | `map(f)`            |                                                            |
-| `map_or(d, f)`           | `map_or(d, f)`      |                                                            |
-| `map_or_call(d, f)`\*    | `map_or_else(d, f)` | lazy (`*_call`) counterpart to the eager `or_else`         |
-| `flatten()`              | `flatten()`         |                                                            |
-| `keep_when(p)`\*         | `filter(p)`         | consistent two-word naming pattern for bool-ish operations |
-| `drop_when(p)`           | —                   | for symmetry with `keep_when`                              |
-| `ok_or(e)`               | `ok_or(e)`          |                                                            |
-| `ok_or_call(f)`\*        | `ok_or_else(f)`     | lazy (`*_call`) counterpart to the eager `ok_or`           |
-| `and_then(other)`!       | `and(other)`        | `and` is a reserved keyword so chose to adopt `and_then`   |
-| `and_then_call(f)`\*     | `and_then(f)`       | lazy (`*_call`) counterpart to the eager `and_then`        |
-| `or_else(other)`!        | `or(other)`         | `or` is a reserved keyword so chose to adopt `or_else`     |
-| `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`         |
-| `xor_with(other)`\*      | `xor(other)`        | consistent two-word naming pattern for bool-ish operations |
-| `tee(f)`\*               | `inspect(f)`        | inspired by Python's `itertools.tee`                       |
-| `transpose()`            | `transpose()`       |                                                            |
-| `is_equal(other)`        | —                   | Godot-specific                                             |
-| `is_equal_approx(other)` | —                   | Godot-specific                                             |
-| —                        | `zip(other)`        | not implemented                                            |
+| GDScript                 | Rust                | Notes                                                        |
+| ------------------------ | ------------------- | ------------------------------------------------------------ |
+| `Some(x)`                | `Some(x)`           |                                                              |
+| `None`                   | `None`              |                                                              |
+| `is_some()`              | `is_some()`         |                                                              |
+| `is_none()`              | `is_none()`         |                                                              |
+| `is_some_and(p)`         | `is_some_and(f)`    |                                                              |
+| `is_none_or(f)`          | `is_none_or(f)`     |                                                              |
+| `unwrap()`               | `unwrap()`          | crashes via `OS.crash` instead of panic                      |
+| `unwrap_or(other)`       | `unwrap_or(other)`  |                                                              |
+| `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`         |
+| `map(f)`                 | `map(f)`            |                                                              |
+| `map_or(d, f)`           | `map_or(d, f)`      |                                                              |
+| `map_or_call(d, f)`\*    | `map_or_else(d, f)` | lazy (`*_call`) counterpart to the eager `or_else`           |
+| `flatten()`              | `flatten()`         |                                                              |
+| `keep_when(p)`\*         | `filter(p)`         | consistent two-word naming pattern for bool-ish operations   |
+| `drop_when(p)`           | —                   | for symmetry with `keep_when`                                |
+| `ok_or(e)`               | `ok_or(e)`          |                                                              |
+| `ok_or_call(f)`\*        | `ok_or_else(f)`     | lazy (`*_call`) counterpart to the eager `ok_or`             |
+| `and_then(other)`!       | `and(other)`        | `and` is a reserved keyword so chose to adopt `and_then`     |
+| `and_then_call(f)`\*     | `and_then(f)`       | lazy (`*_call`) counterpart to the eager `and_then`          |
+| `or_else(other)`!        | `or(other)`         | `or` is a reserved keyword so chose to adopt `or_else`       |
+| `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`           |
+| `xor_with(other)`\*      | `xor(other)`        | consistent two-word naming pattern for bool-ish operations   |
+| `tee(f)`\*               | `inspect(f)`        | inspired by Python's `itertools.tee`                         |
+| `transpose()`            | `transpose()`       |                                                              |
+| `is_equal(other)`        | —                   | Godot-specific                                               |
+| `is_equal_approx(other)` | —                   | Godot-specific                                               |
+| —                        | `zip(other)`        | needs immutable tuple type but Godot only has mutable arrays |
 
 ### `Result`
 
