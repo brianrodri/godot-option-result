@@ -38,6 +38,22 @@ func is_none() -> bool:
 	return not self._is_some
 
 
+## Returns whether [member self] is [code]Some(x)[/code] where [code]x[/code] satisfies predicate [param p].
+func is_some_and(p: Callable) -> bool:
+	if self._is_some:
+		var passed: bool = p.call(self._value)
+		return passed
+	return false
+
+
+## Returns whether [member self] is [code]None[/code] [i]or[/i] [code]Some(x)[/code] where [code]x[/code] satisfies predicate [param p].
+func is_none_or(p: Callable) -> bool:
+	if self._is_some:
+		var passed: bool = p.call(self._value)
+		return passed
+	return true
+
+
 ## Returns [code]Ok(x)[/code] when [member self] is [code]Some(x)[/code], otherwise [code]Err(e)[/code].
 func ok_or(e: Variant) -> Result:
 	if self._is_some:

@@ -22,6 +22,8 @@ Legend:
 | `None`                   | `None`              |                                                            |
 | `is_some()`              | `is_some()`         |                                                            |
 | `is_none()`              | `is_none()`         |                                                            |
+| `is_some_and(p)`         | `is_some_and(f)`    |                                                            |
+| `is_none_or(f)`          | `is_none_or(f)`     |                                                            |
 | `unwrap()`               | `unwrap()`          | crashes via `OS.crash` instead of panic                    |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                            |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`       |
@@ -38,8 +40,6 @@ Legend:
 | `xor_with(other)`\*      | `xor(other)`        | consistent two-word naming pattern for bool-ish operations |
 | `is_equal(other)`        | —                   | Godot-specific                                             |
 | `is_equal_approx(other)` | —                   | Godot-specific                                             |
-| —                        | `is_some_and(f)`    | not implemented                                            |
-| —                        | `is_none_or(f)`     | not implemented                                            |
 | —                        | `inspect(f)`        | not implemented                                            |
 | —                        | `map_or(d, f)`      | not implemented                                            |
 | —                        | `map_or_else(d, f)` | not implemented                                            |
