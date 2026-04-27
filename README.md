@@ -24,7 +24,7 @@ Legend:
 | `is_none()`              | `is_none()`         |                                                            |
 | `unwrap()`               | `unwrap()`          | crashes via `OS.crash` instead of panic                    |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                            |
-| `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | for symmetry with lazy (`*_call`) functions                |
+| `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`       |
 | `map(f)`                 | `map(f)`            |                                                            |
 | `flatten()`              | `flatten()`         |                                                            |
 | `keep_when(p)`\*         | `filter(p)`         | consistent two-word naming pattern for bool-ish operations |
