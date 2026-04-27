@@ -16,7 +16,7 @@ static func Some(x: Variant) -> Option:
 	return Option.new(x)
 
 
-## Returns [code]Some(x)[/code] when [param x] is not null, otherwise [code]None[/code].
+## Returns [code]Some(x)[/code] when [param x] is non-null, otherwise [code]None[/code].
 static func Maybe(x: Variant) -> Option:
 	return None if x == null else Option.new(x)
 
