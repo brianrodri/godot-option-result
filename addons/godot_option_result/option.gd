@@ -179,6 +179,25 @@ func drop_when(p: Callable) -> Option:
 	return None
 
 
+## Transposes an [code]Option(Result)[/code] into a [code]Result(Option)[/code].
+##
+## [codeblock]
+## self is Option.None                → Result.Ok(Option.None)
+## self is Option.Some(Result.Ok(x))  → Result.Ok(Option.Some(x))
+## self is Option.Some(Result.Err(e)) → Result.Err(e)
+## self is Option.Some(_)             → Result.GdErr(Error.ERR_INVALID_DATA)
+## [/codeblock]
+func transpose() -> Result:
+	if not self._is_some:
+		return Result.Ok(self)
+	if self._value is not Result:
+		return Result.GdErr(Error.ERR_INVALID_DATA)
+	var result_value: Result = self._value
+	if result_value.is_err():
+		return result_value
+	return Result.Ok(Some(result_value._value))
+
+
 ## Returns whether the values of [member self] and [param other] are strictly equal with [code]==[/code].
 func is_equal(other: Option) -> bool:
 	if other is Option:

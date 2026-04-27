@@ -41,10 +41,10 @@ Legend:
 | `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`         |
 | `xor_with(other)`\*      | `xor(other)`        | consistent two-word naming pattern for bool-ish operations |
 | `tee(f)`\*               | `inspect(f)`        | inspired by Python's `itertools.tee`                       |
-| —                        | `zip(other)`        | not implemented                                            |
-| —                        | `transpose()`       | not implemented                                            |
+| `transpose()`            | `transpose()`       |                                                            |
 | `is_equal(other)`        | —                   | Godot-specific                                             |
 | `is_equal_approx(other)` | —                   | Godot-specific                                             |
+| —                        | `zip(other)`        | not implemented                                            |
 
 ### `Result`
 
