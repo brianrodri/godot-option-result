@@ -61,14 +61,18 @@ func is_err_and(p: Callable) -> bool:
 	return false
 
 
-## Returns [code]Maybe(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]None[/code].
+## Returns [code]Maybe(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]None[/code].[br]
+## [br]
+## IMPORTANT: When [member self] is [code]Ok(null)[/code], then the [Option] returned will be [code]None[/code]!
 func ok() -> Option:
 	if self._is_ok:
 		return Option.Maybe(self._value)
 	return Option.None
 
 
-## Returns [code]Maybe(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]None[/code].
+## Returns [code]Maybe(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]None[/code].[br]
+## [br]
+## IMPORTANT: When [member self] is [code]Err(null)[/code], then the [Option] returned will be [code]None[/code]!
 func err() -> Option:
 	if not self._is_ok:
 		return Option.Maybe(self._value)
