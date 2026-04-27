@@ -68,6 +68,7 @@ Legend:
 | `and_then_call(f)`\*     | `and_then(f)`       | lazy (`*_call`) counterpart to the eager `and_then`            |
 | `or_else(other)`!        | `or(other)`         | `or` is a reserved keyword; chose to adopt `or_else` instead   |
 | `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`             |
+| `transpose()`            | `transpose()`       |                                                                |
 | `GdErr(e)`               | —                   | Godot-specific                                                 |
 | `is_equal(other)`        | —                   | Godot-specific                                                 |
 | `is_equal_approx(other)` | —                   | Godot-specific                                                 |
@@ -76,4 +77,3 @@ Legend:
 | —                        | `map_or(d, f)`      | not implemented                                                |
 | —                        | `map_or_else(d, f)` | not implemented                                                |
 | —                        | `flatten()`         | not implemented                                                |
-| —                        | `transpose()`       | not implemented                                                |

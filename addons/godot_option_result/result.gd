@@ -153,6 +153,25 @@ func or_else_call(f: Callable) -> Result:
 	return other
 
 
+## Transposes a [code]Result(Option)[/code] into an [code]Option(Result)[/code].
+##
+## [codeblock]
+## self is Result.Ok(Option.None)    → Option.None
+## self is Result.Ok(Option.Some(x)) → Option.Some(Result.Ok(x))
+## self is Result.Err(e)             → Option.Some(Result.Err(e))
+## self is Result.Ok(_)              → Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
+## [/codeblock]
+func transpose() -> Option:
+	if not self._is_ok:
+		return Option.Some(self)
+	if self._value is not Option:
+		return Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
+	var option_value: Option = self._value
+	if option_value._is_some:
+		return Option.Some(Result.Ok(option_value._value))
+	return Option.None
+
+
 ## Returns whether [member self] and [param other] are strictly equal with [code]==[/code].
 func is_equal(other: Result) -> bool:
 	if other is Result:
