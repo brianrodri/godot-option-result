@@ -55,7 +55,7 @@ func ok_or_call(f: Callable) -> Result:
 	return Result.Err(f.call())
 
 
-## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise crashes the game with an alert.
+## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise crashes the game with [method OS.crash].
 func unwrap(e := "[method Option.unwrap] called on None") -> Variant:
 	if self._value == null:
 		OS.crash(e)
