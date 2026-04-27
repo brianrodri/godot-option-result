@@ -96,16 +96,14 @@ func map_err(f: Callable) -> Result:
 ## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise crashes the game with an alert.
 func unwrap(e := "[method Result.unwrap] called on Err") -> Variant:
 	if not self._is_ok:
-		OS.alert(e)
-		OS.kill(OS.get_process_id())
+		OS.crash(e)
 	return self._value
 
 
 ## Returns [code]e[/code] when [member self] is [code]Err(e)[/code], otherwise crashes the game with an alert.
 func unwrap_err(e := "[method Result.unwrap_err] called on Ok") -> Variant:
 	if self._is_ok:
-		OS.alert(e)
-		OS.kill(OS.get_process_id())
+		OS.crash(e)
 	return self._value
 
 

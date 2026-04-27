@@ -57,8 +57,7 @@ func ok_or_call(f: Callable) -> Result:
 ## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise crashes the game with an alert.
 func unwrap(e := "[method Option.unwrap] called on None") -> Variant:
 	if self._value == null:
-		OS.alert(e)
-		OS.kill(OS.get_process_id())
+		OS.crash(e)
 	return self._value
 
 
