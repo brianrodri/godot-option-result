@@ -26,5 +26,5 @@ jobs:
       - name: Run Unit Tests
         uses: godot-gdunit-labs/gdUnit4-action@v1
         with:
-          godot-version: "4.6.1"
+          godot-version: "4.6.2"
           paths: res://test
