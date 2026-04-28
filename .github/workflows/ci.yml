@@ -20,7 +20,7 @@ jobs:
       - name: Install GDScript Toolkit
         uses: Scony/godot-gdscript-toolkit@4.5.0
       - name: Run Format Checks
-        run: gdformat --line-length=120 --check src/ test/
+        run: gdformat --line-length=120 --check addons/godot_option_result/
       - name: Run Lint Checks
         run: gdlint addons/godot_option_result/
       - name: Run Unit Tests
