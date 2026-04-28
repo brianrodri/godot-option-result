@@ -44,7 +44,8 @@ func is_some_and(p: Callable) -> bool:
 	return false
 
 
-## Returns whether [member self] is [code]None[/code] [i]or[/i] [code]Some(x)[/code] where [code]x[/code] satisfies predicate [param p].
+## Returns whether [member self] is [code]None[/code] [i]or[/i] [code]Some(x)[/code] where [code]x[/code] satisfies the
+## predicate [param p].
 func is_none_or(p: Callable) -> bool:
 	if self._is_some:
 		var passed: bool = p.call(self._value)
@@ -101,14 +102,16 @@ func map_or_call(d: Callable, f: Callable) -> Variant:
 	return d.call()
 
 
-## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that satisfies the predicate [param p], otherwise [code]None[/code].
+## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that satisfies the predicate [param p],
+## otherwise [code]None[/code].
 func keep_when(p: Callable) -> Option:
 	if self._is_some and p.call(self._value):
 		return self
 	return None
 
 
-## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that [i]doesn't[/i] satisfy the predicate [param p], otherwise [code]None[/code].
+## Returns [code]Some(x)[/code] when [member self] is [code]Some(x)[/code] that fails the predicate [param p], otherwise
+## [code]None[/code].
 func drop_when(p: Callable) -> Option:
 	if self._is_some and not p.call(self._value):
 		return self
@@ -149,7 +152,8 @@ func or_else_call(f: Callable) -> Option:
 	return other
 
 
-## Returns [code]Some(x)[/code] when exactly one of [member self] and [param other] is [code]Some(x)[/code], otherwise [code]None[/code].
+## Returns [code]Some(x)[/code] when exactly one of [member self] and [param other] is [code]Some(x)[/code], otherwise
+## [code]None[/code].
 func xor_with(other: Option) -> Option:
 	if self._is_some != other._is_some:
 		return self if self._is_some else other
