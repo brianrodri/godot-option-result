@@ -1,16 +1,6 @@
 class_name OptionTest
 extends GdUnitTestSuite
 
-static var GREATER_THAN_ONE := func(x): return x > 1
-static var IS_EVEN := func(x): return x % 2 == 0
-static var STR_LEN := func(v): return len(v)
-static var GET_FORTY_TWO := func(): return 42
-static var SQ_THEN_OPTION := func(x):
-	var sq: int = x * x
-	return Option.Some(sq) if sq <= 1_000_000 else Option.None
-static var NONE_LAZY := func(): return Option.None
-static var VIKINGS := func(): return Option.Some("vikings")
-
 
 func test_is_some(
 		input: Option,
@@ -43,7 +33,7 @@ func test_is_some_and(
 			[Option.None, false],
 		],
 ):
-	assert_bool(input.is_some_and(GREATER_THAN_ONE)).is_equal(expected)
+	assert_bool(input.is_some_and(func(x): return x > 1)).is_equal(expected)
 
 
 func test_is_none_or(
@@ -55,7 +45,7 @@ func test_is_none_or(
 			[Option.None, true],
 		],
 ):
-	assert_bool(input.is_none_or(GREATER_THAN_ONE)).is_equal(expected)
+	assert_bool(input.is_none_or(func(x): return x > 1)).is_equal(expected)
 
 
 func test_tee(
@@ -67,8 +57,7 @@ func test_tee(
 		],
 ):
 	var state := { "called": false }
-	var mark_called := func(_x): state.called = true
-	var returned = input.tee(mark_called)
+	var returned = input.tee(func(_x): state.called = true)
 	assert_bool(state.called).is_equal(call_expected)
 	assert_that(returned).is_equal(input)
 
@@ -91,13 +80,20 @@ func test_unwrap_or(
 
 func test_unwrap_or_call(
 		input: Option,
+		default: Variant,
 		expected: Variant,
+		call_expected: bool,
 		_test_parameters := [
-			[Option.Some(4), 4],
-			[Option.None, 42],
+			[Option.Some(4), 42, 4, false],
+			[Option.None, 42, 42, true],
 		],
 ):
-	assert_that(input.unwrap_or_call(GET_FORTY_TWO)).is_equal(expected)
+	var state := { "called": false }
+	var get_default := func():
+		state.called = true
+		return default
+	assert_that(input.unwrap_or_call(get_default)).is_equal(expected)
+	assert_bool(state.called).is_equal(call_expected)
 
 
 func test_map(
@@ -108,7 +104,7 @@ func test_map(
 			[Option.None, Option.None],
 		],
 ):
-	assert_that(input.map(STR_LEN)).is_equal(expected)
+	assert_that(input.map(len)).is_equal(expected)
 
 
 func test_map_or(
@@ -119,18 +115,25 @@ func test_map_or(
 			[Option.None, 42],
 		],
 ):
-	assert_that(input.map_or(42, STR_LEN)).is_equal(expected)
+	assert_that(input.map_or(42, len)).is_equal(expected)
 
 
 func test_map_or_call(
 		input: Option,
+		default: Variant,
 		expected: Variant,
+		call_expected: bool,
 		_test_parameters := [
-			[Option.Some("foo"), 3],
-			[Option.None, 42],
+			[Option.Some("foo"), 42, 3, false],
+			[Option.None, 42, 42, true],
 		],
 ):
-	assert_that(input.map_or_call(GET_FORTY_TWO, STR_LEN)).is_equal(expected)
+	var state := { "called": false }
+	var get_default := func():
+		state.called = true
+		return default
+	assert_that(input.map_or_call(get_default, len)).is_equal(expected)
+	assert_bool(state.called).is_equal(call_expected)
 
 
 func test_keep_when(
@@ -142,7 +145,7 @@ func test_keep_when(
 			[Option.Some(4), Option.Some(4)],
 		],
 ):
-	assert_that(input.keep_when(IS_EVEN)).is_equal(expected)
+	assert_that(input.keep_when(func(x): return x % 2 == 0)).is_equal(expected)
 
 
 func test_drop_when(
@@ -154,7 +157,7 @@ func test_drop_when(
 			[Option.Some(3), Option.Some(3)],
 		],
 ):
-	assert_that(input.drop_when(IS_EVEN)).is_equal(expected)
+	assert_that(input.drop_when(func(x): return x % 2 == 0)).is_equal(expected)
 
 
 func test_and_then(
@@ -180,7 +183,7 @@ func test_and_then_call(
 			[Option.None, Option.None],
 		],
 ):
-	assert_that(input.and_then_call(SQ_THEN_OPTION)).is_equal(expected)
+	assert_that(input.and_then_call(func(x): return Option.Some(x * x) if x <= 1000 else Option.None)).is_equal(expected)
 
 
 func test_or_else(
@@ -199,15 +202,21 @@ func test_or_else(
 
 func test_or_else_call(
 		input: Option,
-		f: Callable,
+		default: Option,
 		expected: Option,
+		call_expected: bool,
 		_test_parameters := [
-			[Option.Some("barbarians"), VIKINGS, Option.Some("barbarians")],
-			[Option.None, VIKINGS, Option.Some("vikings")],
-			[Option.None, NONE_LAZY, Option.None],
+			[Option.Some("barbarians"), Option.Some("vikings"), Option.Some("barbarians"), false],
+			[Option.None, Option.Some("vikings"), Option.Some("vikings"), true],
+			[Option.None, Option.None, Option.None, true],
 		],
 ):
+	var state := { "called": false }
+	var f := func():
+		state.called = true
+		return default
 	assert_that(input.or_else_call(f)).is_equal(expected)
+	assert_bool(state.called).is_equal(call_expected)
 
 
 func test_xor_with(
@@ -251,13 +260,20 @@ func test_ok_or(
 
 func test_ok_or_call(
 		input: Option,
+		default: Variant,
 		expected: Result,
+		call_expected: bool,
 		_test_parameters := [
-			[Option.Some("foo"), Result.Ok("foo")],
-			[Option.None, Result.Err(42)],
+			[Option.Some("foo"), 42, Result.Ok("foo"), false],
+			[Option.None, 42, Result.Err(42), true],
 		],
 ):
-	assert_that(input.ok_or_call(GET_FORTY_TWO)).is_equal(expected)
+	var state := { "called": false }
+	var get_default := func():
+		state.called = true
+		return default
+	assert_that(input.ok_or_call(get_default)).is_equal(expected)
+	assert_bool(state.called).is_equal(call_expected)
 
 
 func test_transpose(

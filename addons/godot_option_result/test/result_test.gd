@@ -2,22 +2,6 @@ class_name ResultTest
 extends GdUnitTestSuite
 
 
-static func greater_than_one(x):
-	return x > 1
-
-
-static func times_two(x):
-	return x * 2
-
-
-static func square_checked(x):
-	return Result.Ok(x * x) if abs(x) < 1_000_000 else Result.Err("overflowed")
-
-
-static func square_unchecked(x):
-	return Result.Ok(x * x)
-
-
 func test_is_ok(
 		result: Result,
 		expected: bool,
@@ -50,7 +34,7 @@ func test_is_ok_and(
 			[Result.Err("hey"), false],
 		],
 ):
-	assert_bool(result.is_ok_and(greater_than_one)).is_equal(expected)
+	assert_bool(result.is_ok_and(func(x): return x > 1)).is_equal(expected)
 
 
 func test_is_err_and(
@@ -62,7 +46,7 @@ func test_is_err_and(
 			[Result.Ok(123), false],
 		],
 ):
-	assert_bool(result.is_err_and(greater_than_one)).is_equal(expected)
+	assert_bool(result.is_err_and(func(x): return x > 1)).is_equal(expected)
 
 
 func test_tee(
@@ -74,8 +58,7 @@ func test_tee(
 		],
 ):
 	var state := { "called": false }
-	var mark_called := func(_x): state.called = true
-	var returned = input.tee(mark_called)
+	var returned = input.tee(func(_x): state.called = true)
 	assert_that(returned).is_equal(input)
 	assert_bool(state.called).is_equal(call_expected)
 
@@ -89,8 +72,7 @@ func test_tee_err(
 		],
 ):
 	var state := { "called": false }
-	var mark_called := func(_x): state.called = true
-	var returned = input.tee_err(mark_called)
+	var returned = input.tee_err(func(_x): state.called = true)
 	assert_that(returned).is_equal(input)
 	assert_that(state.called).is_equal(call_expected)
 
@@ -118,12 +100,18 @@ func test_unwrap_or(
 func test_unwrap_or_call(
 		result: Result,
 		expected: Variant,
+		call_expected: bool,
 		_test_parameters := [
-			[Result.Ok(2), 2],
-			[Result.Err("foo"), 3],
+			[Result.Ok(2), 2, false],
+			[Result.Err("foo"), 3, true],
 		],
 ):
-	assert_that(result.unwrap_or_call(len)).is_equal(expected)
+	var state := { "called": false }
+	var get_length := func(e):
+		state.called = true
+		return len(e)
+	assert_that(result.unwrap_or_call(get_length)).is_equal(expected)
+	assert_bool(state.called).is_equal(call_expected)
 
 
 func test_map(
@@ -134,7 +122,7 @@ func test_map(
 			[Result.Err(13), Result.Err(13)],
 		],
 ):
-	assert_that(input.map(times_two)).is_equal(expected)
+	assert_that(input.map(func(x): return x * 2)).is_equal(expected)
 
 
 func test_map_err(
@@ -163,12 +151,18 @@ func test_map_or(
 func test_map_or_call(
 		input: Result,
 		expected: Variant,
+		call_expected: bool,
 		_test_parameters := [
-			[Result.Ok("foo"), 3],
-			[Result.Err(21), 42],
+			[Result.Ok("foo"), 3, false],
+			[Result.Err(21), 42, true],
 		],
 ):
-	assert_that(input.map_or_call(times_two, len)).is_equal(expected)
+	var state := { "called": false }
+	var get_times_two := func(x):
+		state.called = true
+		return x * 2
+	assert_that(input.map_or_call(get_times_two, len)).is_equal(expected)
+	assert_bool(state.called).is_equal(call_expected)
 
 
 func test_and_then(
@@ -188,13 +182,19 @@ func test_and_then(
 func test_and_then_call(
 		input: Result,
 		expected: Result,
+		call_expected: bool,
 		_test_parameters := [
-			[Result.Ok(2), Result.Ok(4)],
-			[Result.Ok(1_000_000), Result.Err("overflowed")],
-			[Result.Err("not a number"), Result.Err("not a number")],
+			[Result.Ok(2), Result.Ok(4), true],
+			[Result.Ok(1_000_000), Result.Err("overflowed"), true],
+			[Result.Err("not a number"), Result.Err("not a number"), false],
 		],
 ):
-	assert_that(input.and_then_call(square_checked)).is_equal(expected)
+	var state := { "called": false }
+	var get_square := func(x):
+		state.called = true
+		return Result.Ok(x * x) if abs(x) < 1_000_000 else Result.Err("overflowed")
+	assert_that(input.and_then_call(get_square)).is_equal(expected)
+	assert_bool(state.called).is_equal(call_expected)
 
 
 func test_or_else(
@@ -213,15 +213,21 @@ func test_or_else(
 
 func test_or_else_call(
 		input: Result,
-		f: Callable,
+		default: Result,
 		expected: Result,
+		call_expected: bool,
 		_test_parameters := [
-			[Result.Ok(2), square_unchecked, Result.Ok(2)],
-			[Result.Err(3), square_unchecked, Result.Ok(9)],
-			[Result.Err(3), Result.Err, Result.Err(3)],
+			[Result.Ok(2), Result.Ok(4), Result.Ok(2), false],
+			[Result.Err(3), Result.Ok(9), Result.Ok(9), true],
+			[Result.Err(3), Result.Err(3), Result.Err(3), true],
 		],
 ):
-	assert_that(input.or_else_call(f)).is_equal(expected)
+	var state := { "called": false }
+	var get_default := func(_x):
+		state.called = true
+		return default
+	assert_that(input.or_else_call(get_default)).is_equal(expected)
+	assert_bool(state.called).is_equal(call_expected)
 
 
 func test_ok(
