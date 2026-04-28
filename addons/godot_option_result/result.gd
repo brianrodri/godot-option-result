@@ -4,9 +4,7 @@ extends RefCounted
 
 const _SHARED_IMPL := preload("res://addons/godot_option_result/shared_impl.gd")
 
-## MUST NOT BE CHANGED!
 var _is_ok: bool
-## MUST NOT BE CHANGED!
 var _value: Variant
 
 
@@ -63,37 +61,30 @@ func is_err_and(p: Callable) -> bool:
 	return passed
 
 
-## Returns [code]Some(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]None[/code].
-func ok() -> Option:
+## Calls [param f] when [member self] is [code]Ok(x)[/code]. Returns [member self] regardless.
+func tee(f: Callable) -> Result:
 	if self._is_ok:
-		return Option.Some(self._value)
-	return Option.None
-
-
-## Returns [code]Some(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]None[/code].
-func err() -> Option:
-	if self._is_ok:
-		return Option.None
-	return Option.Some(self._value)
-
-
-## Returns [code]Ok(f(x))[/code] when [member self] is [code]Ok(x)[/code], otherwise [member self].
-func map(f: Callable) -> Result:
-	if self._is_ok:
-		return Ok(f.call(self._value))
+		f.call(self._value)
 	return self
 
 
-## Returns [code]Err(f(e))[/code] when [member self] is [code]Err(e)[/code], otherwise [member self].
-func map_err(f: Callable) -> Result:
-	if self._is_ok:
-		return self
-	return Err(f.call(self._value))
+## Calls [param f] when [member self] is [code]Err(e)[/code]. Returns [member self] regardless.
+func tee_err(f: Callable) -> Result:
+	if not self._is_ok:
+		f.call(self._value)
+	return self
 
 
 ## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise crashes the game with [method OS.crash].
 func unwrap(e := "[method Result.unwrap] called on Err") -> Variant:
 	if not self._is_ok:
+		OS.crash(e)
+	return self._value
+
+
+## Returns [code]e[/code] when [member self] is [code]Err(e)[/code], otherwise crashes the game with [method OS.crash].
+func unwrap_err(e := "[method Result.unwrap_err] called on Ok") -> Variant:
+	if self._is_ok:
 		OS.crash(e)
 	return self._value
 
@@ -112,11 +103,32 @@ func unwrap_or_call(f: Callable) -> Variant:
 	return f.call(self._value)
 
 
-## Returns [code]e[/code] when [member self] is [code]Err(e)[/code], otherwise crashes the game with [method OS.crash].
-func unwrap_err(e := "[method Result.unwrap_err] called on Ok") -> Variant:
+## Returns [code]Ok(f(x))[/code] when [member self] is [code]Ok(x)[/code], otherwise [member self].
+func map(f: Callable) -> Result:
 	if self._is_ok:
-		OS.crash(e)
-	return self._value
+		return Ok(f.call(self._value))
+	return self
+
+
+## Returns [code]Err(f(e))[/code] when [member self] is [code]Err(e)[/code], otherwise [member self].
+func map_err(f: Callable) -> Result:
+	if self._is_ok:
+		return self
+	return Err(f.call(self._value))
+
+
+## Returns [code]f(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [param d].
+func map_or(d: Variant, f: Callable) -> Variant:
+	if self._is_ok:
+		return f.call(self._value)
+	return d
+
+
+## Returns [code]f(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]d(e)[/code] from [code]Err(e)[/code].
+func map_or_call(d: Callable, f: Callable) -> Variant:
+	if self._is_ok:
+		return f.call(self._value)
+	return d.call(self._value)
 
 
 ## Returns [param other] when [member self] is [code]Ok(x)[/code], otherwise [member self].
@@ -151,6 +163,28 @@ func or_else_call(f: Callable) -> Result:
 		return self
 	var other: Result = f.call(self._value)
 	return other
+
+
+## Returns [Result] when [member self] is [code]Ok(Result)[/code], otherwise [member self].
+func flatten() -> Result:
+	if self._is_ok and self._value is Result:
+		var inner: Result = self._value
+		return inner
+	return self
+
+
+## Returns [code]Some(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]None[/code].
+func ok() -> Option:
+	if self._is_ok:
+		return Option.Some(self._value)
+	return Option.None
+
+
+## Returns [code]Some(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]None[/code].
+func err() -> Option:
+	if self._is_ok:
+		return Option.None
+	return Option.Some(self._value)
 
 
 ## Transposes a [code]Result(Option)[/code] into an [code]Option(Result)[/code].
