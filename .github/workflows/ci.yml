@@ -16,15 +16,15 @@ jobs:
       checks: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Install GDScript Toolkit
-        uses: Scony/godot-gdscript-toolkit@4.5.0
+        uses: Scony/godot-gdscript-toolkit@b7a4935fc6483d51837f7080598dad456f4f7645
       - name: Run Format Checks
         run: gdformat --line-length=120 --check addons/godot_option_result/
       - name: Run Lint Checks
         run: gdlint addons/godot_option_result/
       - name: Run Unit Tests
-        uses: godot-gdunit-labs/gdUnit4-action@v1
+        uses: godot-gdunit-labs/gdUnit4-action@2a5faea44567e603cfa034a54e2f9d4052c3cf78
         with:
           godot-version: "4.6.2"
           paths: res://addons/godot_option_result/test
