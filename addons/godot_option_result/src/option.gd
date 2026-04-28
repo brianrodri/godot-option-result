@@ -2,7 +2,7 @@ class_name Option
 extends RefCounted
 ## Immutable.
 
-const _SHARED_IMPL := preload("res://addons/godot_option_result/shared_impl.gd")
+const _SHARED_IMPL := preload("res://addons/godot_option_result/src/shared_impl.gd")
 
 ## [code]None[/code] holds nothing.
 static var None := new()

@@ -2,7 +2,7 @@ class_name Result
 extends RefCounted
 ## Immutable.
 
-const _SHARED_IMPL := preload("res://addons/godot_option_result/shared_impl.gd")
+const _SHARED_IMPL := preload("res://addons/godot_option_result/src/shared_impl.gd")
 
 var _is_ok: bool
 var _value: Variant
