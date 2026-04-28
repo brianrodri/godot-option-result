@@ -1,8 +1,6 @@
 class_name ResultTest
 extends GdUnitTestSuite
 
-const _SHARED_IMPL := preload("res://addons/godot_option_result/src/shared_impl.gd")
-
 
 static func greater_than_one(x):
 	return x > 1
