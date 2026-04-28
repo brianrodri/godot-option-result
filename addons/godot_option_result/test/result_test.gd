@@ -273,7 +273,7 @@ func test_transpose(
 			[Result.Ok(Option.None), Option.None],
 			[Result.Ok(Option.Some(5)), Option.Some(Result.Ok(5))],
 			[Result.Err("SomeErr"), Option.Some(Result.Err("SomeErr"))],
-			[Result.Ok(42), Option.Some(Result.Err("Invalid data"))],
+			[Result.Ok(42), Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))],
 		],
 ):
 	assert_that(input.transpose()).is_equal(expected)
