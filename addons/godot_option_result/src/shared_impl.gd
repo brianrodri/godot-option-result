@@ -1,4 +1,4 @@
-static var _MATCHING_CONSECUTIVE_NEW_LINES := RegEx.create_from_string("\n+", false)
+static var _matching_consecutive_new_lines := RegEx.create_from_string("\n+", false)
 
 
 static func format_compact(format_str: String, ...format_args: Array) -> String:
@@ -14,8 +14,8 @@ static func equal_approx(value: Variant, other: Variant) -> bool:
 		TYPE_FLOAT:
 			return is_equal_approx(value, other)
 		# HINT: These types were sourced by searching for `is_equal_approx` using Godot Editor's "Search Help" modal.
-		TYPE_AABB, TYPE_BASIS, TYPE_COLOR, TYPE_PLANE, TYPE_QUATERNION, TYPE_RECT2, \
-		TYPE_TRANSFORM2D, TYPE_TRANSFORM3D, TYPE_VECTOR2, TYPE_VECTOR3, TYPE_VECTOR4:
+		# gdlint:ignore = max-line-length
+		TYPE_AABB, TYPE_BASIS, TYPE_COLOR, TYPE_PLANE, TYPE_QUATERNION, TYPE_RECT2, TYPE_TRANSFORM2D, TYPE_TRANSFORM3D, TYPE_VECTOR2, TYPE_VECTOR3, TYPE_VECTOR4:
 			return value.is_equal_approx(other)
 		TYPE_OBJECT when (value as Object).has_method(&"is_equal_approx"):
 			return value.is_equal_approx(other)
@@ -26,4 +26,4 @@ static func equal_approx(value: Variant, other: Variant) -> bool:
 
 
 static func _compact_var_to_str(value: Variant) -> String:
-	return _MATCHING_CONSECUTIVE_NEW_LINES.sub(var_to_str(value).strip_edges().dedent(), " ", true)
+	return _matching_consecutive_new_lines.sub(var_to_str(value).strip_edges().dedent(), " ", true)

@@ -18,7 +18,8 @@ static func Err(e: Variant = null) -> Result:
 	return Result.new(false, e)
 
 
-## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise [code]Err(error_string(e))[/code].
+## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise
+## [code]Err(error_string(e))[/code].
 static func GdErr(e: Error) -> Result:
 	if e == Error.OK:
 		return Ok(Error.OK)
@@ -96,7 +97,8 @@ func unwrap_or(other: Variant) -> Variant:
 	return other
 
 
-## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]f(e)[/code] from [code]Err(e)[/code].
+## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]f(e)[/code] when [member self] is
+## [code]Err(e)[/code].
 func unwrap_or_call(f: Callable) -> Variant:
 	if self._is_ok:
 		return self._value
@@ -124,7 +126,8 @@ func map_or(d: Variant, f: Callable) -> Variant:
 	return d
 
 
-## Returns [code]f(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]d(e)[/code] from [code]Err(e)[/code].
+## Returns [code]f(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]d(e)[/code] when [member self] is
+## [code]Err(e)[/code].
 func map_or_call(d: Callable, f: Callable) -> Variant:
 	if self._is_ok:
 		return f.call(self._value)
