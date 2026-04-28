@@ -311,7 +311,7 @@ func test_gd_err(
 		expected: Result,
 		_test_parameters := [
 			[Error.OK, Result.Ok(Error.OK)],
-			[Error.ERR_INVALID_DATA, Result.Err("Invalid data")],
+			[Error.ERR_INVALID_DATA, Result.Err(error_string(Error.ERR_INVALID_DATA))],
 		],
 ):
 	assert_that(Result.GdErr(error)).is_equal(expected)

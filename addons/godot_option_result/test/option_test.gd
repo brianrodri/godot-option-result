@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 static var GREATER_THAN_ONE := func(x): return x > 1
 static var IS_EVEN := func(x): return x % 2 == 0
 static var STR_LEN := func(v): return len(v)
-static var FORTY_TWO := func(): return 42
+static var GET_FORTY_TWO := func(): return 42
 static var SQ_THEN_OPTION := func(x):
 	var sq: int = x * x
 	return Option.Some(sq) if sq <= 1_000_000 else Option.None
@@ -79,13 +79,14 @@ func test_unwrap__returns_value_when_some():
 
 func test_unwrap_or(
 		input: Option,
+		default: Variant,
 		expected: Variant,
 		_test_parameters := [
-			[Option.Some("car"), "car"],
-			[Option.None, "bike"],
+			[Option.Some("car"), "bike", "car"],
+			[Option.None, "bike", "bike"],
 		],
 ):
-	assert_that(input.unwrap_or("bike")).is_equal(expected)
+	assert_that(input.unwrap_or(default)).is_equal(expected)
 
 
 func test_unwrap_or_call(
@@ -96,7 +97,7 @@ func test_unwrap_or_call(
 			[Option.None, 42],
 		],
 ):
-	assert_that(input.unwrap_or_call(FORTY_TWO)).is_equal(expected)
+	assert_that(input.unwrap_or_call(GET_FORTY_TWO)).is_equal(expected)
 
 
 func test_map(
@@ -129,7 +130,7 @@ func test_map_or_call(
 			[Option.None, 42],
 		],
 ):
-	assert_that(input.map_or_call(FORTY_TWO, STR_LEN)).is_equal(expected)
+	assert_that(input.map_or_call(GET_FORTY_TWO, STR_LEN)).is_equal(expected)
 
 
 func test_keep_when(
@@ -214,9 +215,9 @@ func test_xor_with(
 		b: Option,
 		expected: Option,
 		_test_parameters := [
-			[Option.Some(2), Option.None, Option.Some(2)],
+			[Option.Some(1), Option.None, Option.Some(1)],
 			[Option.None, Option.Some(2), Option.Some(2)],
-			[Option.Some(2), Option.Some(2), Option.None],
+			[Option.Some(1), Option.Some(2), Option.None],
 			[Option.None, Option.None, Option.None],
 		],
 ):
@@ -227,6 +228,7 @@ func test_flatten(
 		input: Option,
 		expected: Option,
 		_test_parameters := [
+			[Option.Some(Option.Some(Option.Some(6))), Option.Some(Option.Some(6))],
 			[Option.Some(Option.Some(6)), Option.Some(6)],
 			[Option.Some(Option.None), Option.None],
 			[Option.None, Option.None],
@@ -237,13 +239,14 @@ func test_flatten(
 
 func test_ok_or(
 		input: Option,
+		default: Variant,
 		expected: Result,
 		_test_parameters := [
-			[Option.Some("foo"), Result.Ok("foo")],
-			[Option.None, Result.Err(0)],
+			[Option.Some("foo"), "uh-oh!", Result.Ok("foo")],
+			[Option.None, 0, Result.Err(0)],
 		],
 ):
-	assert_that(input.ok_or(0)).is_equal(expected)
+	assert_that(input.ok_or(default)).is_equal(expected)
 
 
 func test_ok_or_call(
@@ -254,7 +257,7 @@ func test_ok_or_call(
 			[Option.None, Result.Err(42)],
 		],
 ):
-	assert_that(input.ok_or_call(FORTY_TWO)).is_equal(expected)
+	assert_that(input.ok_or_call(GET_FORTY_TWO)).is_equal(expected)
 
 
 func test_transpose(
@@ -270,9 +273,7 @@ func test_transpose(
 
 
 func test_transpose__some_of_non_result_becomes_gd_err():
-	assert_that(Option.Some(42).transpose()).is_equal(
-		Result.Err(error_string(Error.ERR_INVALID_DATA)),
-	)
+	assert_that(Option.Some(42).transpose()).is_equal(Result.GdErr(Error.ERR_INVALID_DATA))
 
 
 func test_is_equal(
