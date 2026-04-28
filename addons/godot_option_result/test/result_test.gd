@@ -67,7 +67,7 @@ func test_is_err_and(
 
 func test_tee(
 		input: Result,
-		expected_called: bool,
+		call_expected: bool,
 		_test_parameters := [
 			[Result.Ok(2), true],
 			[Result.Err("e"), false],
@@ -77,12 +77,12 @@ func test_tee(
 	var mark_called := func(_x): state.called = true
 	var returned = input.tee(mark_called)
 	assert_that(returned).is_equal(input)
-	assert_bool(state.called).is_equal(expected_called)
+	assert_bool(state.called).is_equal(call_expected)
 
 
 func test_tee_err(
 		input: Result,
-		expected_called: bool,
+		call_expected: bool,
 		_test_parameters := [
 			[Result.Ok(2), false],
 			[Result.Err("e"), true],
@@ -92,15 +92,15 @@ func test_tee_err(
 	var mark_called := func(_x): state.called = true
 	var returned = input.tee_err(mark_called)
 	assert_that(returned).is_equal(input)
-	assert_that(state.called).is_equal(expected_called)
+	assert_that(state.called).is_equal(call_expected)
 
 
 func test_unwrap__returns_value_when_ok():
-	assert_that(Result.Ok(2).unwrap()).is_equal(2)
+	assert_int(Result.Ok(2).unwrap()).is_equal(2)
 
 
 func test_unwrap_err__returns_error_when_err():
-	assert_that(Result.Err("emergency failure").unwrap_err()).is_equal("emergency failure")
+	assert_str(Result.Err("emergency failure").unwrap_err()).is_equal("emergency failure")
 
 
 func test_unwrap_or(
