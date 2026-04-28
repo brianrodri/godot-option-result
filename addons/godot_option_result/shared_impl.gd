@@ -10,7 +10,7 @@ static func equal_approx(value: Variant, other: Variant) -> bool:
 		var value_type when value_type != typeof(other):
 			return false
 		TYPE_NIL:
-			return other == null
+			return true
 		TYPE_FLOAT:
 			return is_equal_approx(value, other)
 		# HINT: These types were sourced by searching for `is_equal_approx` using Godot Editor's "Search Help" modal.
