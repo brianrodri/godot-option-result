@@ -25,14 +25,14 @@ Legend:
 | `is_some_and(p)`         | `is_some_and(f)`    |                                                              |
 | `is_none_or(p)`          | `is_none_or(f)`     |                                                              |
 | `tee(f)`\*               | `inspect(f)`        | run side effects without influencing the original "pipeline" |
-| `unwrap(msg?)`\!         | `unwrap()`          | fails with `assert` on debug builds and `OS.crash` otherwise |
+| `unwrap(msg?)`!          | `unwrap()`          | fails with `assert` on debug builds and `OS.crash` otherwise |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                              |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`         |
 | `map(f)`                 | `map(f)`            |                                                              |
 | `map_or(d, f)`           | `map_or(d, f)`      |                                                              |
 | `map_or_call(d, f)`\*    | `map_or_else(d, f)` | lazy (`*_call`) counterpart to the eager `map_or`            |
 | `keep_when(p)`\*         | `filter(p)`         | consistent two-word naming pattern for bool-ish operations   |
-| `drop_when(p)`           | —                   | for symmetry with `keep_when`                                |
+| `drop_when(p)`\*         | —                   | for symmetry with `keep_when`                                |
 | `and_then(other)`!       | `and(other)`        | `and` is a reserved keyword so chose to adopt `and_then`     |
 | `and_then_call(f)`\*     | `and_then(f)`       | lazy (`*_call`) counterpart to the eager `and_then`          |
 | `or_else(other)`!        | `or(other)`         | `or` is a reserved keyword so chose to adopt `or_else`       |
@@ -57,10 +57,10 @@ Legend:
 | `is_err()`               | `is_err()`          |                                                                |
 | `is_ok_and(p)`           | `is_ok_and(p)`      |                                                                |
 | `is_err_and(p)`          | `is_err_and(p)`     |                                                                |
-| `tee(f)`                 | `inspect(f)`        | run side effects without influencing the original "pipeline"   |
-| `tee_err(f)`             | `inspect_err(f)`    | run side effects without influencing the original "pipeline"   |
-| `unwrap(msg?)`\!         | `unwrap()`          | fails with `assert` on debug builds and `OS.crash` otherwise   |
-| `unwrap_err(msg?)`\!     | `unwrap_err()`      | fails with `assert` on debug builds and `OS.crash` otherwise   |
+| `tee(f)`\*               | `inspect(f)`        | run side effects without influencing the original "pipeline"   |
+| `tee_err(f)`\*           | `inspect_err(f)`    | run side effects without influencing the original "pipeline"   |
+| `unwrap(msg?)`!          | `unwrap()`          | fails with `assert` on debug builds and `OS.crash` otherwise   |
+| `unwrap_err(msg?)`!      | `unwrap_err()`      | fails with `assert` on debug builds and `OS.crash` otherwise   |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                                |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`           |
 | `map(f)`                 | `map(f)`            |                                                                |
