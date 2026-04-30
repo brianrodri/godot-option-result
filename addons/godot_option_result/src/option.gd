@@ -60,7 +60,8 @@ func tee(f: Callable) -> Option:
 	return self
 
 
-## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise fails with [method @GlobalScope.assert].
+## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise fails with
+## [method @GlobalScope.assert] in debug builds and [method OS.crash] in non-debug/exported builds.
 func unwrap(msg := "[method Option.unwrap] called on {0}") -> Variant:
 	if not self._is_some:
 		if OS.is_debug_build():
