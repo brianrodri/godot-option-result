@@ -79,14 +79,20 @@ func tee_err(f: Callable) -> Result:
 ## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise fails with [method @GlobalScope.assert].
 func unwrap(msg := "[method Result.unwrap] called on {0}") -> Variant:
 	if not self._is_ok:
-		assert(false, msg.format([self.to_string()]))
+		if OS.is_debug_build():
+			assert(false, msg.format([self.to_string()]))
+		else:
+			OS.crash(msg.format([self.to_string()]))
 	return self._value
 
 
 ## Returns [code]e[/code] when [member self] is [code]Err(e)[/code], otherwise fails with [method @GlobalScope.assert].
 func unwrap_err(msg := "[method Result.unwrap_err] called on {0}") -> Variant:
 	if self._is_ok:
-		assert(false, msg.format([self.to_string()]))
+		if OS.is_debug_build():
+			assert(false, msg.format([self.to_string()]))
+		else:
+			OS.crash(msg.format([self.to_string()]))
 	return self._value
 
 
