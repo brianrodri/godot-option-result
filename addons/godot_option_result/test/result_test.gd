@@ -123,7 +123,7 @@ func test_unwrap_err_fails_with_custom_message_when_ok() -> void:
 func test_unwrap_err_substitutes_self_into_custom_message_when_ok() -> void:
 	await (
 		assert_error(func(): Result.Ok(42).unwrap_err("got {0}, wanted Err"))
-		. is_runtime_error('Assertion failed: got Result.Ok(42), wanted Err')
+		. is_runtime_error("Assertion failed: got Result.Ok(42), wanted Err")
 	)
 
 
