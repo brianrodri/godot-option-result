@@ -76,17 +76,29 @@ func tee_err(f: Callable) -> Result:
 	return self
 
 
-## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise crashes the game with [method OS.crash].
-func unwrap(e := "[method Result.unwrap] called on Err") -> Variant:
+## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise fails with
+## [method @GlobalScope.assert] in debug builds and [method OS.crash] in release/non-debug builds.[br]
+## [br]
+## Calls [method String.format] on [param msg] to embed [member self] into the [code]{0}[/code] placeholder.
+func unwrap(msg: String = "[method Result.unwrap] called on {0}") -> Variant:
 	if not self._is_ok:
-		OS.crash(e)
+		if OS.is_debug_build():
+			assert(false, msg.format([self.to_string()]))
+		else:
+			OS.crash(msg.format([self.to_string()]))
 	return self._value
 
 
-## Returns [code]e[/code] when [member self] is [code]Err(e)[/code], otherwise crashes the game with [method OS.crash].
-func unwrap_err(e := "[method Result.unwrap_err] called on Ok") -> Variant:
+## Returns [code]e[/code] when [member self] is [code]Err(e)[/code], otherwise fails with
+## [method @GlobalScope.assert] in debug builds and [method OS.crash] in release/non-debug builds.[br]
+## [br]
+## Calls [method String.format] on [param msg] to embed [member self] into the [code]{0}[/code] placeholder.
+func unwrap_err(msg: String = "[method Result.unwrap_err] called on {0}") -> Variant:
 	if self._is_ok:
-		OS.crash(e)
+		if OS.is_debug_build():
+			assert(false, msg.format([self.to_string()]))
+		else:
+			OS.crash(msg.format([self.to_string()]))
 	return self._value
 
 

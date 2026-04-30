@@ -17,8 +17,8 @@ static func Some(x: Variant) -> Option:
 
 
 ## Private constructor.
-func _init(is_some: bool = false, x: Variant = null) -> void:
-	self._is_some = is_some
+func _init(as_some: bool = false, x: Variant = null) -> void:
+	self._is_some = as_some
 	self._value = x if self._is_some else null
 
 
@@ -60,10 +60,16 @@ func tee(f: Callable) -> Option:
 	return self
 
 
-## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise crashes the game with [method OS.crash].
-func unwrap(e := "[method Option.unwrap] called on None") -> Variant:
+## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise fails with
+## [method @GlobalScope.assert] in debug builds and [method OS.crash] in release/non-debug builds.[br]
+## [br]
+## Calls [method String.format] on [param msg] to embed [member self] into the [code]{0}[/code] placeholder.
+func unwrap(msg: String = "[method Option.unwrap] called on {0}") -> Variant:
 	if not self._is_some:
-		OS.crash(e)
+		if OS.is_debug_build():
+			assert(false, msg.format([self.to_string()]))
+		else:
+			OS.crash(msg.format([self.to_string()]))
 	return self._value
 
 
