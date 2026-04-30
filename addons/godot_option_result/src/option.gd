@@ -60,10 +60,9 @@ func tee(f: Callable) -> Option:
 	return self
 
 
-## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise crashes the game with [method OS.crash].
-func unwrap(e := "[method Option.unwrap] called on None") -> Variant:
-	if not self._is_some:
-		OS.crash(e)
+## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise fails with [method @GlobalScope.assert].
+func unwrap(msg := "[method Option.unwrap] called on %s") -> Variant:
+	assert(self._is_some, msg.format([self]) if _SHARED_IMPL.is_format_string(msg) else msg)
 	return self._value
 
 

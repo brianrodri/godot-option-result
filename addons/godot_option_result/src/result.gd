@@ -76,10 +76,9 @@ func tee_err(f: Callable) -> Result:
 	return self
 
 
-## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise crashes the game with [method OS.crash].
-func unwrap(e := "[method Result.unwrap] called on Err") -> Variant:
-	if not self._is_ok:
-		OS.crash(e)
+## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise fails with [method @GlobalScope.assert].
+func unwrap(msg := "[method Result.unwrap] called on %s") -> Variant:
+	assert(self._is_ok, msg.format([self]) if _SHARED_IMPL.is_format_string(msg) else msg)
 	return self._value
 
 

@@ -11,8 +11,8 @@ Copy `addons/godot_option_result/` into your project. No plugin activation requi
 Legend:
 
 - Methods marked `—` are not implemented.
-- Methods marked `!` have been renamed due to **necessity**.
-- Methods marked `*` have been renamed for consistency & style.
+- Methods marked `!` have been changed due to **necessity**.
+- Methods marked `*` have been changed for consistency & style.
 
 ### `Option`
 
@@ -25,7 +25,7 @@ Legend:
 | `is_some_and(p)`         | `is_some_and(f)`    |                                                              |
 | `is_none_or(p)`          | `is_none_or(f)`     |                                                              |
 | `tee(f)`\*               | `inspect(f)`        | run side effects without influencing the original "pipeline" |
-| `unwrap()`               | `unwrap()`          | crashes via `OS.crash` instead of panic                      |
+| `unwrap(msg)`            | `unwrap()`          | uses `assert(msg)` rather than `panic`/crashing the program  |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                              |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`         |
 | `map(f)`                 | `map(f)`            |                                                              |
@@ -59,7 +59,7 @@ Legend:
 | `is_err_and(p)`          | `is_err_and(p)`     |                                                                |
 | `tee(f)`                 | `inspect(f)`        | run side effects without influencing the original "pipeline"   |
 | `tee_err(f)`             | `inspect_err(f)`    | run side effects without influencing the original "pipeline"   |
-| `unwrap()`               | `unwrap()`          | crashes via `OS.crash` instead of panic                        |
+| `unwrap(msg)`            | `unwrap()`          | uses `assert(msg)` rather than `panic`/crashing the program    |
 | `unwrap_err()`           | `unwrap_err()`      |                                                                |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                                |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`           |
