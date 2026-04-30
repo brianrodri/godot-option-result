@@ -106,6 +106,27 @@ func test_unwrap_err_returns_error_when_err():
 	assert_str(Result.Err("emergency failure").unwrap_err()).is_equal("emergency failure")
 
 
+func test_unwrap_err_fails_with_default_message_when_ok() -> void:
+	await (
+		assert_error(func(): Result.Ok(42).unwrap_err())
+		. is_runtime_error("Assertion failed: [method Result.unwrap_err] called on Result.Ok(42)")
+	)
+
+
+func test_unwrap_err_fails_with_custom_message_when_ok() -> void:
+	await (
+		assert_error(func(): Result.Ok(42).unwrap_err("expected an error"))
+		. is_runtime_error("Assertion failed: expected an error")
+	)
+
+
+func test_unwrap_err_substitutes_self_into_custom_message_when_ok() -> void:
+	await (
+		assert_error(func(): Result.Ok(42).unwrap_err("got {0}, wanted Err"))
+		. is_runtime_error('Assertion failed: got Result.Ok(42), wanted Err')
+	)
+
+
 func test_unwrap_or(
 	result: Result,
 	default: Variant,

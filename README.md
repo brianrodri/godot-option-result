@@ -60,7 +60,7 @@ Legend:
 | `tee(f)`                 | `inspect(f)`        | run side effects without influencing the original "pipeline"   |
 | `tee_err(f)`             | `inspect_err(f)`    | run side effects without influencing the original "pipeline"   |
 | `unwrap(msg?)`\!         | `unwrap()`          | uses `assert(msg)` rather than `panic`/crashing the program    |
-| `unwrap_err()`           | `unwrap_err()`      |                                                                |
+| `unwrap_err(msg?)`\!     | `unwrap_err()`      | uses `assert(msg)` rather than crashing the program            |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                                |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`           |
 | `map(f)`                 | `map(f)`            |                                                                |
