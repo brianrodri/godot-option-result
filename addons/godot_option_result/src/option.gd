@@ -17,8 +17,8 @@ static func Some(x: Variant) -> Option:
 
 
 ## Private constructor.
-func _init(is_some: bool = false, x: Variant = null) -> void:
-	self._is_some = is_some
+func _init(as_some: bool = false, x: Variant = null) -> void:
+	self._is_some = as_some
 	self._value = x if self._is_some else null
 
 
