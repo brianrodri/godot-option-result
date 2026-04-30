@@ -66,6 +66,27 @@ func test_unwrap_returns_value_when_some():
 	assert_that(Option.Some("air").unwrap()).is_equal("air")
 
 
+func test_unwrap_fails_with_default_message_when_none() -> void:
+	await (
+		assert_error(func(): Option.None.unwrap())
+		. is_runtime_error("Assertion failed: [method Option.unwrap] called on Option.None")
+	)
+
+
+func test_unwrap_fails_with_custom_message_when_none() -> void:
+	await (
+		assert_error(func(): Option.None.unwrap("expected a value"))
+		. is_runtime_error("Assertion failed: expected a value")
+	)
+
+
+func test_unwrap_substitutes_self_into_custom_message_when_none() -> void:
+	await (
+		assert_error(func(): Option.None.unwrap("got {0}, wanted Some"))
+		. is_runtime_error("Assertion failed: got Option.None, wanted Some")
+	)
+
+
 func test_unwrap_or(
 	input: Option,
 	default: Variant,
