@@ -61,8 +61,9 @@ func tee(f: Callable) -> Option:
 
 
 ## Returns [code]x[/code] when [member self] is [code]Some(x)[/code], otherwise fails with [method @GlobalScope.assert].
-func unwrap(msg := "[method Option.unwrap] called on %s") -> Variant:
-	assert(self._is_some, msg.format([self]) if _SHARED_IMPL.is_format_string(msg) else msg)
+func unwrap(msg := "[method Option.unwrap] called on {0}") -> Variant:
+	if not self._is_some:
+		assert(false, msg.format([self.to_string()]))
 	return self._value
 
 

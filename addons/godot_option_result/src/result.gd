@@ -77,8 +77,9 @@ func tee_err(f: Callable) -> Result:
 
 
 ## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise fails with [method @GlobalScope.assert].
-func unwrap(msg := "[method Result.unwrap] called on %s") -> Variant:
-	assert(self._is_ok, msg.format([self]) if _SHARED_IMPL.is_format_string(msg) else msg)
+func unwrap(msg := "[method Result.unwrap] called on {0}") -> Variant:
+	if not self._is_ok:
+		assert(false, msg.format([self.to_string()]))
 	return self._value
 
 

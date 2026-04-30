@@ -1,13 +1,4 @@
 static var _matching_consecutive_new_lines := RegEx.create_from_string("\n+", false)
-static var _matching_format_token := RegEx.create_from_string("%s", false)
-
-
-static func is_format_string(msg: String) -> bool:
-	for match in _matching_format_token.search_all(msg):
-		var start := match.get_start()
-		if start == 0 or msg[start - 1] != "%":
-			return true
-	return false
 
 
 static func format_compact(format_str: String, ...format_args: Array) -> String:
