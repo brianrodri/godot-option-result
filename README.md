@@ -25,7 +25,7 @@ Legend:
 | `is_some_and(p)`         | `is_some_and(f)`    |                                                              |
 | `is_none_or(p)`          | `is_none_or(f)`     |                                                              |
 | `tee(f)`\*               | `inspect(f)`        | run side effects without influencing the original "pipeline" |
-| `unwrap(msg?)`\!         | `unwrap()`          | uses `assert(msg)` in debug build and `OS.crash` otherwise   |
+| `unwrap(msg?)`\!         | `unwrap()`          | fails with `assert` on debug builds and `OS.crash` otherwise |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                              |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`         |
 | `map(f)`                 | `map(f)`            |                                                              |
@@ -59,8 +59,8 @@ Legend:
 | `is_err_and(p)`          | `is_err_and(p)`     |                                                                |
 | `tee(f)`                 | `inspect(f)`        | run side effects without influencing the original "pipeline"   |
 | `tee_err(f)`             | `inspect_err(f)`    | run side effects without influencing the original "pipeline"   |
-| `unwrap(msg?)`\!         | `unwrap()`          | uses `assert(msg)` in debug build and `OS.crash` otherwise     |
-| `unwrap_err(msg?)`\!     | `unwrap_err()`      | uses `assert(msg)` in debug build and `OS.crash` otherwise     |
+| `unwrap(msg?)`\!         | `unwrap()`          | fails with `assert` on debug builds and `OS.crash` otherwise   |
+| `unwrap_err(msg?)`\!     | `unwrap_err()`      | fails with `assert` on debug builds and `OS.crash` otherwise   |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                                |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`           |
 | `map(f)`                 | `map(f)`            |                                                                |
