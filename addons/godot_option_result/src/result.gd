@@ -77,7 +77,7 @@ func tee_err(f: Callable) -> Result:
 
 
 ## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise fails with
-## [method @GlobalScope.assert] in debug builds and [method OS.crash] in non-debug/exported builds.[br]
+## [method @GlobalScope.assert] in debug builds and [method OS.crash] in release/non-debug builds.[br]
 ## [br]
 ## Calls [method String.format] on [param msg] to embed [member self] into the [code]{0}[/code] placeholder.
 func unwrap(msg: String = "[method Result.unwrap] called on {0}") -> Variant:
@@ -90,7 +90,7 @@ func unwrap(msg: String = "[method Result.unwrap] called on {0}") -> Variant:
 
 
 ## Returns [code]e[/code] when [member self] is [code]Err(e)[/code], otherwise fails with
-## [method @GlobalScope.assert] in debug builds and [method OS.crash] in non-debug/exported builds.[br]
+## [method @GlobalScope.assert] in debug builds and [method OS.crash] in release/non-debug builds.[br]
 ## [br]
 ## Calls [method String.format] on [param msg] to embed [member self] into the [code]{0}[/code] placeholder.
 func unwrap_err(msg: String = "[method Result.unwrap_err] called on {0}") -> Variant:
