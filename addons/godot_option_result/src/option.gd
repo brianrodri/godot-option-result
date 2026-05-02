@@ -16,6 +16,13 @@ static func Some(x: Variant) -> Option:
 	return Option.new(true, x)
 
 
+## [code]Some(x)[/code] when [code]x[/code] is not [code]null[/code], otherwise [code]None[/code].
+static func not_null(x: Variant) -> Option:
+	if x != null:
+		return Option.Some(x)
+	return Option.None
+
+
 ## Private constructor.
 func _init(as_some: bool = false, x: Variant = null) -> void:
 	self._is_some = as_some
