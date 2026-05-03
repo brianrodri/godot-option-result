@@ -61,7 +61,7 @@ func is_none_or(p: Callable) -> bool:
 
 
 ## Calls [param f] when [member self] is [code]Some(x)[/code]. Returns [member self] regardless.
-func tee(f: Callable) -> Option:
+func pipe(f: Callable) -> Option:
 	if self._is_some:
 		f.call(self._value)
 	return self

@@ -3,76 +3,76 @@ extends GdUnitTestSuite
 
 
 func test_is_ok(
-	result: Result,
-	expected: bool,
-	_test_parameters := [
-		[Result.Ok(-3), true],
-		[Result.Err("Some error message"), false],
-	],
+		result: Result,
+		expected: bool,
+		_test_parameters := [
+			[Result.Ok(-3), true],
+			[Result.Err("Some error message"), false],
+		],
 ):
 	assert_bool(result.is_ok()).is_equal(expected)
 
 
 func test_is_err(
-	result: Result,
-	expected: bool,
-	_test_parameters := [
-		[Result.Ok(-3), false],
-		[Result.Err("Some error message"), true],
-	],
+		result: Result,
+		expected: bool,
+		_test_parameters := [
+			[Result.Ok(-3), false],
+			[Result.Err("Some error message"), true],
+		],
 ):
 	assert_bool(result.is_err()).is_equal(expected)
 
 
 func test_is_ok_and(
-	result: Result,
-	expected: bool,
-	_test_parameters := [
-		[Result.Ok(2), true],
-		[Result.Ok(0), false],
-		[Result.Err(123), false],
-		[Result.Err("hey"), false],
-	],
+		result: Result,
+		expected: bool,
+		_test_parameters := [
+			[Result.Ok(2), true],
+			[Result.Ok(0), false],
+			[Result.Err(123), false],
+			[Result.Err("hey"), false],
+		],
 ):
 	assert_bool(result.is_ok_and(func(x): return x > 1)).is_equal(expected)
 
 
 func test_is_err_and(
-	result: Result,
-	expected: bool,
-	_test_parameters := [
-		[Result.Err(2), true],
-		[Result.Err(0), false],
-		[Result.Ok(123), false],
-	],
+		result: Result,
+		expected: bool,
+		_test_parameters := [
+			[Result.Err(2), true],
+			[Result.Err(0), false],
+			[Result.Ok(123), false],
+		],
 ):
 	assert_bool(result.is_err_and(func(x): return x > 1)).is_equal(expected)
 
 
-func test_tee(
-	input: Result,
-	call_expected: bool,
-	_test_parameters := [
-		[Result.Ok(2), true],
-		[Result.Err("e"), false],
-	],
+func test_pipe(
+		input: Result,
+		call_expected: bool,
+		_test_parameters := [
+			[Result.Ok(2), true],
+			[Result.Err("e"), false],
+		],
 ):
-	var state := {"called": false}
-	var returned = input.tee(func(_x): state.called = true)
+	var state := { "called": false }
+	var returned = input.pipe(func(_x): state.called = true)
 	assert_that(returned).is_equal(input)
 	assert_bool(state.called).is_equal(call_expected)
 
 
-func test_tee_err(
-	input: Result,
-	call_expected: bool,
-	_test_parameters := [
-		[Result.Ok(2), false],
-		[Result.Err("e"), true],
-	],
+func test_pipe_err(
+		input: Result,
+		call_expected: bool,
+		_test_parameters := [
+			[Result.Ok(2), false],
+			[Result.Err("e"), true],
+		],
 ):
-	var state := {"called": false}
-	var returned = input.tee_err(func(_x): state.called = true)
+	var state := { "called": false }
+	var returned = input.pipe_err(func(_x): state.called = true)
 	assert_that(returned).is_equal(input)
 	assert_that(state.called).is_equal(call_expected)
 
@@ -83,22 +83,22 @@ func test_unwrap_returns_value_when_ok():
 
 func test_unwrap_fails_with_default_message_when_err() -> void:
 	await (
-		assert_error(func(): Result.Err(42).unwrap())
-		. is_runtime_error("Assertion failed: [method Result.unwrap] called on Result.Err(42)")
+		assert_error(func(): Result.Err(42).unwrap()) \
+				.is_runtime_error("Assertion failed: [method Result.unwrap] called on Result.Err(42)")
 	)
 
 
 func test_unwrap_fails_with_custom_message_when_err() -> void:
 	await (
-		assert_error(func(): Result.Err("boom").unwrap("expected a value"))
-		. is_runtime_error("Assertion failed: expected a value")
+		assert_error(func(): Result.Err("boom").unwrap("expected a value")) \
+				.is_runtime_error("Assertion failed: expected a value")
 	)
 
 
 func test_unwrap_substitutes_self_into_custom_message_when_err() -> void:
 	await (
-		assert_error(func(): Result.Err("boom").unwrap("got {0}, wanted Ok"))
-		. is_runtime_error('Assertion failed: got Result.Err("boom"), wanted Ok')
+		assert_error(func(): Result.Err("boom").unwrap("got {0}, wanted Ok")) \
+				.is_runtime_error('Assertion failed: got Result.Err("boom"), wanted Ok')
 	)
 
 
@@ -108,47 +108,47 @@ func test_unwrap_err_returns_error_when_err():
 
 func test_unwrap_err_fails_with_default_message_when_ok() -> void:
 	await (
-		assert_error(func(): Result.Ok(42).unwrap_err())
-		. is_runtime_error("Assertion failed: [method Result.unwrap_err] called on Result.Ok(42)")
+		assert_error(func(): Result.Ok(42).unwrap_err()) \
+				.is_runtime_error("Assertion failed: [method Result.unwrap_err] called on Result.Ok(42)")
 	)
 
 
 func test_unwrap_err_fails_with_custom_message_when_ok() -> void:
 	await (
-		assert_error(func(): Result.Ok(42).unwrap_err("expected an error"))
-		. is_runtime_error("Assertion failed: expected an error")
+		assert_error(func(): Result.Ok(42).unwrap_err("expected an error")) \
+				.is_runtime_error("Assertion failed: expected an error")
 	)
 
 
 func test_unwrap_err_substitutes_self_into_custom_message_when_ok() -> void:
 	await (
-		assert_error(func(): Result.Ok(42).unwrap_err("got {0}, wanted Err"))
-		. is_runtime_error("Assertion failed: got Result.Ok(42), wanted Err")
+		assert_error(func(): Result.Ok(42).unwrap_err("got {0}, wanted Err")) \
+				.is_runtime_error("Assertion failed: got Result.Ok(42), wanted Err")
 	)
 
 
 func test_unwrap_or(
-	result: Result,
-	default: Variant,
-	expected: Variant,
-	_test_parameters := [
-		[Result.Ok(9), 0, 9],
-		[Result.Err("error"), 0, 0],
-	],
+		result: Result,
+		default: Variant,
+		expected: Variant,
+		_test_parameters := [
+			[Result.Ok(9), 0, 9],
+			[Result.Err("error"), 0, 0],
+		],
 ):
 	assert_that(result.unwrap_or(default)).is_equal(expected)
 
 
 func test_unwrap_or_call(
-	result: Result,
-	expected: Variant,
-	call_expected: bool,
-	_test_parameters := [
-		[Result.Ok(2), 2, false],
-		[Result.Err("foo"), 3, true],
-	],
+		result: Result,
+		expected: Variant,
+		call_expected: bool,
+		_test_parameters := [
+			[Result.Ok(2), 2, false],
+			[Result.Err("foo"), 3, true],
+		],
 ):
-	var state := {"called": false}
+	var state := { "called": false }
 	var get_length := func(e):
 		state.called = true
 		return len(e)
@@ -157,49 +157,49 @@ func test_unwrap_or_call(
 
 
 func test_map(
-	input: Result,
-	expected: Result,
-	_test_parameters := [
-		[Result.Ok(2), Result.Ok(4)],
-		[Result.Err(13), Result.Err(13)],
-	],
+		input: Result,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok(2), Result.Ok(4)],
+			[Result.Err(13), Result.Err(13)],
+		],
 ):
 	assert_that(input.map(func(x): return x * 2)).is_equal(expected)
 
 
 func test_map_err(
-	input: Result,
-	expected: Result,
-	_test_parameters := [
-		[Result.Ok(2), Result.Ok(2)],
-		[Result.Err("foo"), Result.Err(3)],
-	],
+		input: Result,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok(2), Result.Ok(2)],
+			[Result.Err("foo"), Result.Err(3)],
+		],
 ):
 	assert_that(input.map_err(len)).is_equal(expected)
 
 
 func test_map_or(
-	input: Result,
-	default: Variant,
-	expected: Variant,
-	_test_parameters := [
-		[Result.Ok("foo"), 42, 3],
-		[Result.Err("bar"), 42, 42],
-	],
+		input: Result,
+		default: Variant,
+		expected: Variant,
+		_test_parameters := [
+			[Result.Ok("foo"), 42, 3],
+			[Result.Err("bar"), 42, 42],
+		],
 ):
 	assert_that(input.map_or(default, len)).is_equal(expected)
 
 
 func test_map_or_call(
-	input: Result,
-	expected: Variant,
-	call_expected: bool,
-	_test_parameters := [
-		[Result.Ok("foo"), 3, false],
-		[Result.Err(21), 42, true],
-	],
+		input: Result,
+		expected: Variant,
+		call_expected: bool,
+		_test_parameters := [
+			[Result.Ok("foo"), 3, false],
+			[Result.Err(21), 42, true],
+		],
 ):
-	var state := {"called": false}
+	var state := { "called": false }
 	var get_times_two := func(x):
 		state.called = true
 		return x * 2
@@ -208,30 +208,30 @@ func test_map_or_call(
 
 
 func test_and_then(
-	self_result: Result,
-	other: Result,
-	expected: Result,
-	_test_parameters := [
-		[Result.Ok(2), Result.Err("late error"), Result.Err("late error")],
-		[Result.Err("early error"), Result.Ok("foo"), Result.Err("early error")],
-		[Result.Err("not a 2"), Result.Err("late error"), Result.Err("not a 2")],
-		[Result.Ok(2), Result.Ok("different result type"), Result.Ok("different result type")],
-	],
+		self_result: Result,
+		other: Result,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok(2), Result.Err("late error"), Result.Err("late error")],
+			[Result.Err("early error"), Result.Ok("foo"), Result.Err("early error")],
+			[Result.Err("not a 2"), Result.Err("late error"), Result.Err("not a 2")],
+			[Result.Ok(2), Result.Ok("different result type"), Result.Ok("different result type")],
+		],
 ):
 	assert_that(self_result.and_then(other)).is_equal(expected)
 
 
 func test_and_then_call(
-	input: Result,
-	expected: Result,
-	call_expected: bool,
-	_test_parameters := [
-		[Result.Ok(2), Result.Ok(4), true],
-		[Result.Ok(1_000_000), Result.Err("overflowed"), true],
-		[Result.Err("not a number"), Result.Err("not a number"), false],
-	],
+		input: Result,
+		expected: Result,
+		call_expected: bool,
+		_test_parameters := [
+			[Result.Ok(2), Result.Ok(4), true],
+			[Result.Ok(1_000_000), Result.Err("overflowed"), true],
+			[Result.Err("not a number"), Result.Err("not a number"), false],
+		],
 ):
-	var state := {"called": false}
+	var state := { "called": false }
 	var get_square := func(x):
 		state.called = true
 		return Result.Ok(x * x) if abs(x) < 1_000_000 else Result.Err("overflowed")
@@ -240,31 +240,31 @@ func test_and_then_call(
 
 
 func test_or_else(
-	self_result: Result,
-	other: Result,
-	expected: Result,
-	_test_parameters := [
-		[Result.Ok(2), Result.Err("late error"), Result.Ok(2)],
-		[Result.Err("early error"), Result.Ok(2), Result.Ok(2)],
-		[Result.Err("not a 2"), Result.Err("late error"), Result.Err("late error")],
-		[Result.Ok(2), Result.Ok(100), Result.Ok(2)],
-	],
+		self_result: Result,
+		other: Result,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok(2), Result.Err("late error"), Result.Ok(2)],
+			[Result.Err("early error"), Result.Ok(2), Result.Ok(2)],
+			[Result.Err("not a 2"), Result.Err("late error"), Result.Err("late error")],
+			[Result.Ok(2), Result.Ok(100), Result.Ok(2)],
+		],
 ):
 	assert_that(self_result.or_else(other)).is_equal(expected)
 
 
 func test_or_else_call(
-	input: Result,
-	default: Result,
-	expected: Result,
-	call_expected: bool,
-	_test_parameters := [
-		[Result.Ok(2), Result.Ok(4), Result.Ok(2), false],
-		[Result.Err(3), Result.Ok(9), Result.Ok(9), true],
-		[Result.Err(3), Result.Err(3), Result.Err(3), true],
-	],
+		input: Result,
+		default: Result,
+		expected: Result,
+		call_expected: bool,
+		_test_parameters := [
+			[Result.Ok(2), Result.Ok(4), Result.Ok(2), false],
+			[Result.Err(3), Result.Ok(9), Result.Ok(9), true],
+			[Result.Err(3), Result.Err(3), Result.Err(3), true],
+		],
 ):
-	var state := {"called": false}
+	var state := { "called": false }
 	var get_default := func(_x):
 		state.called = true
 		return default
@@ -272,94 +272,156 @@ func test_or_else_call(
 	assert_bool(state.called).is_equal(call_expected)
 
 
+func test_recover_with(
+		input: Result,
+		expected: Result,
+		_test_parameters := [
+			[Result.Err("retryable"), Result.Ok("fallback")],
+			[Result.Err("fatal"), Result.Err("fatal")],
+			[Result.Ok("already-ok"), Result.Ok("already-ok")],
+		],
+):
+	assert_that(input.recover_with("retryable", "fallback")).is_equal(expected)
+
+
+func test_recover_with_call_executes_only_on_match():
+	var state := { "called": false }
+	var f := func(_err: String) -> String:
+		state.called = true
+		return "fallback"
+	assert_that(Result.Err("retryable").recover_with_call("retryable", f).pipe_err(f)).is_equal(Result.Ok("fallback"))
+	assert_bool(state.called).is_true()
+
+
+func test_recover_with_call_skips_callback_on_mismatch():
+	var state := { "called": false }
+	var f := func(_val: String) -> String:
+		state.called = true
+		return "fallback"
+	var original := Result.Err("something-else")
+	assert_that(original.recover_with_call("retryable", f)).is_equal(original)
+	assert_bool(state.called).is_false()
+
+
+func test_reject_with(
+		input: Result,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok("bad"), Result.Err("rejected")],
+			[Result.Ok("good"), Result.Ok("good")],
+			[Result.Err("already-err"), Result.Err("already-err")],
+		],
+):
+	assert_that(input.reject_with("bad", "rejected")).is_equal(expected)
+
+
+func test_reject_with_call_executes_only_on_match():
+	var state := { "called": false }
+	var f := func(_val: String) -> String:
+		state.called = true
+		return "rejected"
+	assert_that(Result.Ok("bad").reject_with_call("bad", f)).is_equal(Result.Err("rejected"))
+	assert_bool(state.called).is_true()
+
+
+func test_reject_with_call_skips_callback_on_mismatch():
+	var state := { "called": false }
+	var f := func(_val: String) -> String:
+		state.called = true
+		return "rejected"
+	var original := Result.Ok("something-else")
+	assert_that(original.reject_with_call("bad", f)).is_equal(original)
+	assert_bool(state.called).is_false()
+
+
 func test_ok(
-	input: Result,
-	expected: Option,
-	_test_parameters := [
-		[Result.Ok(2), Option.Some(2)],
-		[Result.Err("Nothing here"), Option.None],
-	],
+		input: Result,
+		expected: Option,
+		_test_parameters := [
+			[Result.Ok(2), Option.Some(2)],
+			[Result.Err("Nothing here"), Option.None],
+		],
 ):
 	assert_that(input.ok()).is_equal(expected)
 
 
 func test_err(
-	input: Result,
-	expected: Option,
-	_test_parameters := [
-		[Result.Ok(2), Option.None],
-		[Result.Err("Nothing here"), Option.Some("Nothing here")],
-	],
+		input: Result,
+		expected: Option,
+		_test_parameters := [
+			[Result.Ok(2), Option.None],
+			[Result.Err("Nothing here"), Option.Some("Nothing here")],
+		],
 ):
 	assert_that(input.err()).is_equal(expected)
 
 
 func test_flatten(
-	input: Result,
-	expected: Result,
-	_test_parameters := [
-		[Result.Ok(Result.Ok(Result.Ok(5))), Result.Ok(Result.Ok(5))],
-		[Result.Ok(Result.Ok("hello")), Result.Ok("hello")],
-		[Result.Ok(Result.Err(6)), Result.Err(6)],
-		[Result.Err(6), Result.Err(6)],
-		[Result.Err(Result.Ok("uh-oh")), Result.Err(Result.Ok("uh-oh"))],
-	],
+		input: Result,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok(Result.Ok(Result.Ok(5))), Result.Ok(Result.Ok(5))],
+			[Result.Ok(Result.Ok("hello")), Result.Ok("hello")],
+			[Result.Ok(Result.Err(6)), Result.Err(6)],
+			[Result.Err(6), Result.Err(6)],
+			[Result.Err(Result.Ok("uh-oh")), Result.Err(Result.Ok("uh-oh"))],
+		],
 ):
 	assert_that(input.flatten()).is_equal(expected)
 
 
 func test_transpose(
-	input: Result,
-	expected: Option,
-	_test_parameters := [
-		[Result.Ok(Option.None), Option.None],
-		[Result.Ok(Option.Some(5)), Option.Some(Result.Ok(5))],
-		[Result.Err("SomeErr"), Option.Some(Result.Err("SomeErr"))],
-		[Result.Ok(42), Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))],
-	],
+		input: Result,
+		expected: Option,
+		_test_parameters := [
+			[Result.Ok(Option.None), Option.None],
+			[Result.Ok(Option.Some(5)), Option.Some(Result.Ok(5))],
+			[Result.Err("SomeErr"), Option.Some(Result.Err("SomeErr"))],
+			[Result.Ok(42), Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))],
+		],
 ):
 	assert_that(input.transpose()).is_equal(expected)
 
 
 func test_is_equal(
-	a: Result,
-	b: Result,
-	expected: bool,
-	_test_parameters := [
-		[Result.Ok(1.0), Result.Ok(1.0), true],
-		[Result.Ok(1.0), Result.Ok(1.0 + 1e-9), false],
-		[Result.Ok(2), Result.Ok(2), true],
-		[Result.Ok(2), Result.Ok(3), false],
-		[Result.Ok(2), Result.Err(2), false],
-		[Result.Err("x"), Result.Err("x"), true],
-		[Result.Err("x"), Result.Err("y"), false],
-	],
+		a: Result,
+		b: Result,
+		expected: bool,
+		_test_parameters := [
+			[Result.Ok(1.0), Result.Ok(1.0), true],
+			[Result.Ok(1.0), Result.Ok(1.0 + 1e-9), false],
+			[Result.Ok(2), Result.Ok(2), true],
+			[Result.Ok(2), Result.Ok(3), false],
+			[Result.Ok(2), Result.Err(2), false],
+			[Result.Err("x"), Result.Err("x"), true],
+			[Result.Err("x"), Result.Err("y"), false],
+		],
 ):
 	assert_bool(a.is_equal(b)).is_equal(expected)
 
 
 func test_is_equal_approx(
-	a: Result,
-	b: Result,
-	expected: bool,
-	_test_parameters := [
-		[Result.Ok(1.0), Result.Ok(1.0), true],
-		[Result.Ok(1.0), Result.Ok(1.0 + 1e-9), true],
-		[Result.Ok("x"), Result.Ok("x"), true],
-		[Result.Ok(1.0), Result.Ok(2.0), false],
-		[Result.Ok("x"), Result.Ok("y"), false],
-		[Result.Ok(1.0), Result.Err(1.0), false],
-	],
+		a: Result,
+		b: Result,
+		expected: bool,
+		_test_parameters := [
+			[Result.Ok(1.0), Result.Ok(1.0), true],
+			[Result.Ok(1.0), Result.Ok(1.0 + 1e-9), true],
+			[Result.Ok("x"), Result.Ok("x"), true],
+			[Result.Ok(1.0), Result.Ok(2.0), false],
+			[Result.Ok("x"), Result.Ok("y"), false],
+			[Result.Ok(1.0), Result.Err(1.0), false],
+		],
 ):
 	assert_bool(a.is_equal_approx(b)).is_equal(expected)
 
 
 func test_gd_err(
-	error: Error,
-	expected: Result,
-	_test_parameters := [
-		[Error.OK, Result.Ok(Error.OK)],
-		[Error.ERR_INVALID_DATA, Result.Err(error_string(Error.ERR_INVALID_DATA))],
-	],
+		error: Error,
+		expected: Result,
+		_test_parameters := [
+			[Error.OK, Result.Ok(Error.OK)],
+			[Error.ERR_INVALID_DATA, Result.Err(error_string(Error.ERR_INVALID_DATA))],
+		],
 ):
 	assert_that(Result.GdErr(error)).is_equal(expected)
