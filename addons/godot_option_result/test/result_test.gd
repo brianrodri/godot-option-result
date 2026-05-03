@@ -286,16 +286,16 @@ func test_recover_with(
 
 func test_recover_with_call_executes_only_on_match():
 	var state := { "called": false }
-	var f := func():
+	var f := func(_err: String) -> String:
 		state.called = true
 		return "fallback"
-	assert_that(Result.Err("retryable").recover_with_call("retryable", f)).is_equal(Result.Ok("fallback"))
+	assert_that(Result.Err("retryable").recover_with_call("retryable", f).pipe_err(f)).is_equal(Result.Ok("fallback"))
 	assert_bool(state.called).is_true()
 
 
 func test_recover_with_call_skips_callback_on_mismatch():
 	var state := { "called": false }
-	var f := func():
+	var f := func(_val: String) -> String:
 		state.called = true
 		return "fallback"
 	var original := Result.Err("something-else")
@@ -317,7 +317,7 @@ func test_reject_with(
 
 func test_reject_with_call_executes_only_on_match():
 	var state := { "called": false }
-	var f := func():
+	var f := func(_val: String) -> String:
 		state.called = true
 		return "rejected"
 	assert_that(Result.Ok("bad").reject_with_call("bad", f)).is_equal(Result.Err("rejected"))
@@ -326,7 +326,7 @@ func test_reject_with_call_executes_only_on_match():
 
 func test_reject_with_call_skips_callback_on_mismatch():
 	var state := { "called": false }
-	var f := func():
+	var f := func(_val: String) -> String:
 		state.called = true
 		return "rejected"
 	var original := Result.Ok("something-else")

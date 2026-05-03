@@ -187,11 +187,11 @@ func recover_with(ok_err: Variant, val: Variant) -> Result:
 	return Result.Ok(val)
 
 
-## Returns [code]Ok(f())[/code] when [member self] is [code]Err(ok_err)[/code], otherwise [member self].
+## Returns [code]Ok(f(ok_err))[/code] when [member self] is [code]Err(ok_err)[/code], otherwise [member self].
 func recover_with_call(ok_err: Variant, f: Callable) -> Result:
 	if self._is_ok or self._value != ok_err:
 		return self
-	return Result.Ok(f.call())
+	return Result.Ok(f.call(self._value))
 
 
 ## Returns [code]Err(err)[/code] when [member self] is [code]Ok(bad_ok)[/code], otherwise [member self].
@@ -201,11 +201,11 @@ func reject_with(bad_ok: Variant, err: Variant) -> Result:
 	return Result.Err(err)
 
 
-## Returns [code]Err(f())[/code] when [member self] is [code]Ok(bad_ok)[/code], otherwise [member self].
+## Returns [code]Err(f(bad_ok))[/code] when [member self] is [code]Ok(bad_ok)[/code], otherwise [member self].
 func reject_with_call(bad_ok: Variant, f: Callable) -> Result:
 	if not self._is_ok or self._value != bad_ok:
 		return self
-	return Result.Err(f.call())
+	return Result.Err(f.call(self._value))
 
 
 ## Returns [Result] when [member self] is [code]Ok(Result)[/code], otherwise [member self].
