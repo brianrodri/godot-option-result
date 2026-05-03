@@ -24,7 +24,7 @@ Legend:
 | `is_none()`              | `is_none()`         |                                                              |
 | `is_some_and(p)`         | `is_some_and(f)`    |                                                              |
 | `is_none_or(p)`          | `is_none_or(f)`     |                                                              |
-| `tee(f)`\*               | `inspect(f)`        | run side effects without influencing the original "pipeline" |
+| `pipe(f)`\*              | `inspect(f)`        | run side effects without influencing the original "pipeline" |
 | `unwrap(msg?)`!          | `unwrap()`          | fails with `assert` on debug builds and `OS.crash` otherwise |
 | `unwrap_or(other)`       | `unwrap_or(other)`  |                                                              |
 | `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`         |
@@ -48,32 +48,36 @@ Legend:
 
 ### `Result`
 
-| GDScript                 | Rust                | Notes                                                          |
-| ------------------------ | ------------------- | -------------------------------------------------------------- |
-| `Ok(x)`                  | `Ok(x)`             |                                                                |
-| `Err(e)`                 | `Err(e)`            |                                                                |
-| `GdErr(e)`               | —                   | Godot-specific                                                 |
-| `is_ok()`                | `is_ok()`           |                                                                |
-| `is_err()`               | `is_err()`          |                                                                |
-| `is_ok_and(p)`           | `is_ok_and(p)`      |                                                                |
-| `is_err_and(p)`          | `is_err_and(p)`     |                                                                |
-| `tee(f)`\*               | `inspect(f)`        | run side effects without influencing the original "pipeline"   |
-| `tee_err(f)`\*           | `inspect_err(f)`    | run side effects without influencing the original "pipeline"   |
-| `unwrap(msg?)`!          | `unwrap()`          | fails with `assert` on debug builds and `OS.crash` otherwise   |
-| `unwrap_err(msg?)`!      | `unwrap_err()`      | fails with `assert` on debug builds and `OS.crash` otherwise   |
-| `unwrap_or(other)`       | `unwrap_or(other)`  |                                                                |
-| `unwrap_or_call(f)`\*    | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`           |
-| `map(f)`                 | `map(f)`            |                                                                |
-| `map_err(f)`             | `map_err(f)`        |                                                                |
-| `map_or(d, f)`           | `map_or(d, f)`      |                                                                |
-| `map_or_call(d, f)`\*    | `map_or_else(d, f)` | lazy (`*_call`) counterpart to the eager `map_or`              |
-| `and_then(other)`!       | `and(other)`        | `and` is a reserved keyword; chose to adopt `and_then` instead |
-| `and_then_call(f)`\*     | `and_then(f)`       | lazy (`*_call`) counterpart to the eager `and_then`            |
-| `or_else(other)`!        | `or(other)`         | `or` is a reserved keyword; chose to adopt `or_else` instead   |
-| `or_else_call(f)`\*      | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`             |
-| `flatten()`              | `flatten()`         |                                                                |
-| `ok()`                   | `ok()`              |                                                                |
-| `err()`                  | `err()`             |                                                                |
-| `transpose()`            | `transpose()`       |                                                                |
-| `is_equal(other)`        | —                   | Godot-specific                                                 |
-| `is_equal_approx(other)` | —                   | Godot-specific                                                 |
+| GDScript                    | Rust                | Notes                                                          |
+| --------------------------- | ------------------- | -------------------------------------------------------------- |
+| `Ok(x)`                     | `Ok(x)`             |                                                                |
+| `Err(e)`                    | `Err(e)`            |                                                                |
+| `GdErr(e)`                  | —                   | Godot-specific                                                 |
+| `is_ok()`                   | `is_ok()`           |                                                                |
+| `is_err()`                  | `is_err()`          |                                                                |
+| `is_ok_and(p)`              | `is_ok_and(p)`      |                                                                |
+| `is_err_and(p)`             | `is_err_and(p)`     |                                                                |
+| `pipe(f)`\*                 | `inspect(f)`        | run side effects without influencing the original "pipeline"   |
+| `pipe_err(f)`\*             | `inspect_err(f)`    | run side effects without influencing the original "pipeline"   |
+| `unwrap(msg?)`!             | `unwrap()`          | fails with `assert` on debug builds and `OS.crash` otherwise   |
+| `unwrap_err(msg?)`!         | `unwrap_err()`      | fails with `assert` on debug builds and `OS.crash` otherwise   |
+| `unwrap_or(other)`          | `unwrap_or(other)`  |                                                                |
+| `unwrap_or_call(f)`\*       | `unwrap_or_else(f)` | lazy (`*_call`) counterpart to the eager `unwrap_or`           |
+| `map(f)`                    | `map(f)`            |                                                                |
+| `map_err(f)`                | `map_err(f)`        |                                                                |
+| `map_or(d, f)`              | `map_or(d, f)`      |                                                                |
+| `map_or_call(d, f)`\*       | `map_or_else(d, f)` | lazy (`*_call`) counterpart to the eager `map_or`              |
+| `and_then(other)`!          | `and(other)`        | `and` is a reserved keyword; chose to adopt `and_then` instead |
+| `and_then_call(f)`\*        | `and_then(f)`       | lazy (`*_call`) counterpart to the eager `and_then`            |
+| `or_else(other)`!           | `or(other)`         | `or` is a reserved keyword; chose to adopt `or_else` instead   |
+| `or_else_call(f)`\*         | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`             |
+| `recover_with(e, x)`        | -                   | helpful for over-verbosity of `or_else`                        |
+| `recover_with_call(e, f)`\* | -                   | lazy (`*_call`) counterpart to the eager `recover_with`        |
+| `reject_with(e, x)`         | -                   | for symmetry with `recover_with`                               |
+| `reject_with_call(e, f)`\*  | -                   | lazy (`*_call`) counterpart to the eager `reject_with`         |
+| `flatten()`                 | `flatten()`         |                                                                |
+| `ok()`                      | `ok()`              |                                                                |
+| `err()`                     | `err()`             |                                                                |
+| `transpose()`               | `transpose()`       |                                                                |
+| `is_equal(other)`           | —                   | Godot-specific                                                 |
+| `is_equal_approx(other)`    | —                   | Godot-specific                                                 |
