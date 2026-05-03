@@ -73,8 +73,8 @@ Legend:
 | `or_else_call(f)`\*         | `or_else(f)`        | lazy (`*_call`) counterpart to the eager `or_else`             |
 | `recover_with(e, x)`        | -                   | helpful for over-verbosity of `or_else`                        |
 | `recover_with_call(e, f)`\* | -                   | lazy (`*_call`) counterpart to the eager `recover_with`        |
-| `reject_with(e, x)`         | -                   | for symmetry with `recover_with`                               |
-| `reject_with_call(e, f)`\*  | -                   | lazy (`*_call`) counterpart to the eager `reject_with`         |
+| `reject_with(x, e)`         | -                   | for symmetry with `recover_with`                               |
+| `reject_with_call(x, f)`\*  | -                   | lazy (`*_call`) counterpart to the eager `reject_with`         |
 | `flatten()`                 | `flatten()`         |                                                                |
 | `ok()`                      | `ok()`              |                                                                |
 | `err()`                     | `err()`             |                                                                |
