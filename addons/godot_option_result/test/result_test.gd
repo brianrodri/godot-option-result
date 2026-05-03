@@ -285,12 +285,12 @@ func test_recover_with(
 
 
 func test_recover_with_call_executes_only_on_match():
-	var called := false
+	var state := { "called": false }
 	var f := func():
-		called = true
+		state.called = true
 		return "fallback"
 	assert_that(Result.Err("retryable").recover_with_call("retryable", f)).is_equal(Result.Ok("fallback"))
-	assert_bool(called).is_true()
+	assert_bool(state.called).is_true()
 
 
 func test_reject_with(
@@ -306,12 +306,12 @@ func test_reject_with(
 
 
 func test_reject_with_call_executes_only_on_match():
-	var called := false
+	var state := { "called": false }
 	var f := func():
-		called = true
+		state.called = true
 		return "rejected"
 	assert_that(Result.Ok("bad").reject_with_call("bad", f)).is_equal(Result.Err("rejected"))
-	assert_bool(called).is_true()
+	assert_bool(state.called).is_true()
 
 
 func test_ok(
