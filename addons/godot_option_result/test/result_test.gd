@@ -272,6 +272,48 @@ func test_or_else_call(
 	assert_bool(state.called).is_equal(call_expected)
 
 
+func test_recover_with(
+		input: Result,
+		expected: Result,
+		_test_parameters := [
+			[Result.Err("retryable"), Result.Ok("fallback")],
+			[Result.Err("fatal"), Result.Err("fatal")],
+			[Result.Ok("already-ok"), Result.Ok("already-ok")],
+		],
+):
+	assert_that(input.recover_with("retryable", "fallback")).is_equal(expected)
+
+
+func test_recover_with_call_executes_only_on_match():
+	var called := false
+	var f := func():
+		called = true
+		return "fallback"
+	assert_that(Result.Err("retryable").recover_with_call("retryable", f)).is_equal(Result.Ok("fallback"))
+	assert_bool(called).is_true()
+
+
+func test_reject_with(
+		input: Result,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok("bad"), Result.Err("rejected")],
+			[Result.Ok("good"), Result.Ok("good")],
+			[Result.Err("already-err"), Result.Err("already-err")],
+		],
+):
+	assert_that(input.reject_with("bad", "rejected")).is_equal(expected)
+
+
+func test_reject_with_call_executes_only_on_match():
+	var called := false
+	var f := func():
+		called = true
+		return "rejected"
+	assert_that(Result.Ok("bad").reject_with_call("bad", f)).is_equal(Result.Err("rejected"))
+	assert_bool(called).is_true()
+
+
 func test_ok(
 		input: Result,
 		expected: Option,
