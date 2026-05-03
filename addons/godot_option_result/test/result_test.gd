@@ -293,6 +293,16 @@ func test_recover_with_call_executes_only_on_match():
 	assert_bool(state.called).is_true()
 
 
+func test_recover_with_call_skips_callback_on_mismatch():
+	var state := { "called": false }
+	var f := func():
+		state.called = true
+		return "fallback"
+	var original := Result.Err("something-else")
+	assert_that(original.recover_with_call("retryable", f)).is_equal(original)
+	assert_bool(state.called).is_false()
+
+
 func test_reject_with(
 		input: Result,
 		expected: Result,
@@ -312,6 +322,16 @@ func test_reject_with_call_executes_only_on_match():
 		return "rejected"
 	assert_that(Result.Ok("bad").reject_with_call("bad", f)).is_equal(Result.Err("rejected"))
 	assert_bool(state.called).is_true()
+
+
+func test_reject_with_call_skips_callback_on_mismatch():
+	var state := { "called": false }
+	var f := func():
+		state.called = true
+		return "rejected"
+	var original := Result.Ok("something-else")
+	assert_that(original.reject_with_call("bad", f)).is_equal(original)
+	assert_bool(state.called).is_false()
 
 
 func test_ok(
