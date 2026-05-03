@@ -63,14 +63,14 @@ func is_err_and(p: Callable) -> bool:
 
 
 ## Calls [param f] when [member self] is [code]Ok(x)[/code]. Returns [member self] regardless.
-func tee(f: Callable) -> Result:
+func pipe(f: Callable) -> Result:
 	if self._is_ok:
 		f.call(self._value)
 	return self
 
 
 ## Calls [param f] when [member self] is [code]Err(e)[/code]. Returns [member self] regardless.
-func tee_err(f: Callable) -> Result:
+func pipe_err(f: Callable) -> Result:
 	if not self._is_ok:
 		f.call(self._value)
 	return self
@@ -178,6 +178,34 @@ func or_else_call(f: Callable) -> Result:
 		return self
 	var other: Result = f.call(self._value)
 	return other
+
+
+## Returns [code]Ok(val)[/code] when [member self] is [code]Err(ok_err)[/code], otherwise [member self].
+func recover_with(ok_err: Variant, val: Variant) -> Result:
+	if self._is_ok or self._value != ok_err:
+		return self
+	return Result.Ok(val)
+
+
+## Returns [code]Ok(f())[/code] when [member self] is [code]Err(ok_err)[/code], otherwise [member self].
+func recover_with_call(ok_err: Variant, f: Callable) -> Result:
+	if self._is_ok or self._value != ok_err:
+		return self
+	return Result.Ok(f.call())
+
+
+## Returns [code]Err(err)[/code] when [member self] is [code]Ok(bad_ok)[/code], otherwise [member self].
+func reject_with(bad_ok: Variant, err: Variant) -> Result:
+	if not self._is_ok or self._value != bad_ok:
+		return self
+	return Result.Err(err)
+
+
+## Returns [code]Err(f())[/code] when [member self] is [code]Ok(bad_ok)[/code], otherwise [member self].
+func reject_with_call(bad_ok: Variant, f: Callable) -> Result:
+	if not self._is_ok or self._value != bad_ok:
+		return self
+	return Result.Err(f.call())
 
 
 ## Returns [Result] when [member self] is [code]Ok(Result)[/code], otherwise [member self].
