@@ -24,8 +24,8 @@ static func GdErr(e: Error) -> Result:
 	return Err(error_string(e))
 
 
-## [code]Ok(instance.member)[/code] when [param member_name] is a valid property on [param instance], otherwise
-## [code]Err(error_string)[/code].
+## [code]Ok(instance.member)[/code] when [param member_name] is a valid property on [param instance], otherwise some
+## [code]GdErr[/code].
 static func take_member(instance: Variant, member_name: StringName) -> Result:
 	if not is_instance_valid(instance):
 		return GdErr(ERR_INVALID_PARAMETER)
@@ -35,7 +35,7 @@ static func take_member(instance: Variant, member_name: StringName) -> Result:
 
 
 ## [code]Ok(instance.method(...method_args))[/code] when [param method_name] is a valid method on [param instance],
-## otherwise [code]Err(error_string)[/code]. The call will be made with [param method_args] as arguments.
+## otherwise some [code]GdErr[/code]. The call will be made with [param method_args] as arguments.
 static func make_method_call(instance: Variant, method_name: StringName, ...method_args: Array) -> Result:
 	if not is_instance_valid(instance):
 		return GdErr(ERR_INVALID_PARAMETER)
