@@ -66,6 +66,20 @@ func test_is_none_or(
 	assert_bool(input.is_none_or(func(x): return x > 1)).is_equal(expected)
 
 
+func test_iterate_none():
+	var found := []
+	for value in Option.None:
+		found.append(value)
+	assert_array(found).is_empty()
+
+
+func test_iterate_some():
+	var found := []
+	for value in Option.Some(42):
+		found.append(value)
+	assert_array(found).contains_exactly(42)
+
+
 func test_pipe(
 		input: Option,
 		call_expected: bool,

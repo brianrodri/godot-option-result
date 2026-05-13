@@ -47,7 +47,6 @@ static func make_method_call(instance: Variant, method_name: StringName, ...meth
 	return Ok(method.callv(method_args))
 
 
-## Private constructor.
 func _init(as_ok: bool, value: Variant) -> void:
 	self._is_ok = as_ok
 	self._value = value

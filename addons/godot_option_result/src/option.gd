@@ -21,7 +21,6 @@ static func not_null(x: Variant) -> Option:
 	return Option.None
 
 
-## Private constructor.
 func _init(as_some: bool = false, x: Variant = null) -> void:
 	self._is_some = as_some
 	self._value = x if self._is_some else null
@@ -32,6 +31,18 @@ func _to_string() -> String:
 		return "None"
 	var value_str := var_to_str(self._value) if self._value is String or self._value is StringName else str(self._value)
 	return "Some({0})".format([value_str])
+
+
+func _iter_init(_iter: Array) -> bool:
+	return self._is_some
+
+
+func _iter_next(_iter: Array) -> bool:
+	return false
+
+
+func _iter_get(_iter: Variant) -> Variant:
+	return self._value
 
 
 ## Returns whether [member self] is [code]Some(x)[/code].
