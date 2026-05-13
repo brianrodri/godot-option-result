@@ -2,6 +2,128 @@ class_name ResultTest
 extends GdUnitTestSuite
 
 
+func test_to_string_with_simple_types(
+		input: Result,
+		expected: String,
+		_test_parameters := [
+			# Oks
+			[Result.Ok(null), "Ok(<null>)"],
+			[Result.Ok(42), "Ok(42)"],
+			[Result.Ok("42"), 'Ok("42")'],
+			[Result.Ok(&"42"), 'Ok(&"42")'],
+			[Result.Ok([1, 2, 3]), "Ok([1, 2, 3])"],
+			[Result.Ok(["1", "2", "3"]), 'Ok(["1", "2", "3"])'],
+			[Result.Ok({ a = 1 }), 'Ok({ &"a": 1 })'],
+			[Result.Ok({ a = "1" }), 'Ok({ &"a": "1" })'],
+			# GdErr(OK)
+			[Result.GdErr(OK), "Ok(0)"],
+			# Errs
+			[Result.Err(null), "Err(<null>)"],
+			[Result.Err(42), "Err(42)"],
+			[Result.Err("42"), 'Err("42")'],
+			[Result.Err([1, 2, 3]), "Err([1, 2, 3])"],
+			[Result.Err(["1", "2", "3"]), 'Err(["1", "2", "3"])'],
+			[Result.Err({ a = 1 }), 'Err({ &"a": 1 })'],
+			[Result.Err({ a = "1" }), 'Err({ &"a": "1" })'],
+		],
+):
+	assert_str(str(input)).is_equal(expected)
+
+
+func test_to_string_with_builtin_gd_errors(
+		e: Error,
+		_test_parameters := [
+			[FAILED],
+			[ERR_UNAVAILABLE],
+			[ERR_UNCONFIGURED],
+			[ERR_UNAUTHORIZED],
+			[ERR_PARAMETER_RANGE_ERROR],
+			[ERR_OUT_OF_MEMORY],
+			[ERR_FILE_NOT_FOUND],
+			[ERR_FILE_BAD_DRIVE],
+			[ERR_FILE_BAD_PATH],
+			[ERR_FILE_NO_PERMISSION],
+			[ERR_FILE_ALREADY_IN_USE],
+			[ERR_FILE_CANT_OPEN],
+			[ERR_FILE_CANT_WRITE],
+			[ERR_FILE_CANT_READ],
+			[ERR_FILE_UNRECOGNIZED],
+			[ERR_FILE_CORRUPT],
+			[ERR_FILE_MISSING_DEPENDENCIES],
+			[ERR_FILE_EOF],
+			[ERR_CANT_OPEN],
+			[ERR_CANT_CREATE],
+			[ERR_QUERY_FAILED],
+			[ERR_ALREADY_IN_USE],
+			[ERR_LOCKED],
+			[ERR_TIMEOUT],
+			[ERR_CANT_CONNECT],
+			[ERR_CANT_RESOLVE],
+			[ERR_CONNECTION_ERROR],
+			[ERR_CANT_ACQUIRE_RESOURCE],
+			[ERR_CANT_FORK],
+			[ERR_INVALID_DATA],
+			[ERR_INVALID_PARAMETER],
+			[ERR_ALREADY_EXISTS],
+			[ERR_DOES_NOT_EXIST],
+			[ERR_DATABASE_CANT_READ],
+			[ERR_DATABASE_CANT_WRITE],
+			[ERR_COMPILATION_FAILED],
+			[ERR_METHOD_NOT_FOUND],
+			[ERR_LINK_FAILED],
+			[ERR_SCRIPT_FAILED],
+			[ERR_CYCLIC_LINK],
+			[ERR_INVALID_DECLARATION],
+			[ERR_DUPLICATE_SYMBOL],
+			[ERR_PARSE_ERROR],
+			[ERR_BUSY],
+			[ERR_SKIP],
+			[ERR_HELP],
+			[ERR_BUG],
+			[ERR_PRINTER_ON_FIRE],
+		],
+):
+	var result := Result.GdErr(e)
+	var expected_reason := error_string(e)
+	assert_str(str(result)).is_equal('Err("{0}")'.format([expected_reason]))
+
+
+func test_take_member(
+		instance: Variant,
+		member_name: StringName,
+		expectation: Result,
+		_test_parameters := [
+			[auto_free(Node.new()), &"process_mode", Result.Ok(PROCESS_MODE_INHERIT)],
+			[auto_free(Node.new()), &"process_lols", Result.GdErr(ERR_INVALID_DECLARATION)],
+			[null, &"process_mode", Result.GdErr(ERR_INVALID_PARAMETER)],
+			[Vector3.ONE, &"x", Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(CustomClass.new(42)), &"prop", Result.Ok(42)],
+			[auto_free(CustomClass.new(42)), &"unknown_prop", Result.GdErr(ERR_INVALID_DECLARATION)],
+		],
+):
+	assert_that(Result.take_member(instance, member_name)).is_equal(expectation)
+
+
+func test_make_method_call(
+		instance: Variant,
+		method_name: StringName,
+		method_args: Array,
+		expectation: Result,
+		_test_parameters := [
+			[auto_free(Node.new()), &"is_node_ready", [], Result.Ok(false)],
+			[auto_free(Node.new()), &"is_food_ready", [], Result.GdErr(ERR_INVALID_DECLARATION)],
+			[auto_free(Node.new()), &"can_process", [1, 2, 3], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
+			[null, &"is_node_ready", [], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[Vector3.ONE, &"is_equal_approx", [Vector3.ONE], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [2], Result.Ok(84)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [2, 3], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
+			[auto_free(CustomClass.new(42)), &"mul_by_two", [2], Result.GdErr(ERR_INVALID_DECLARATION)],
+		],
+):
+	assert_that(Result.make_method_call.bindv(method_args).call(instance, method_name)).is_equal(expectation)
+
+
 func test_is_ok(
 		result: Result,
 		expected: bool,
@@ -84,7 +206,7 @@ func test_unwrap_returns_value_when_ok():
 func test_unwrap_fails_with_default_message_when_err() -> void:
 	await (
 		assert_error(func(): Result.Err(42).unwrap()) \
-				.is_runtime_error("Assertion failed: [method Result.unwrap] called on Result.Err(42)")
+				.is_runtime_error("Assertion failed: [method Result.unwrap] called on Err(42)")
 	)
 
 
@@ -98,7 +220,7 @@ func test_unwrap_fails_with_custom_message_when_err() -> void:
 func test_unwrap_substitutes_self_into_custom_message_when_err() -> void:
 	await (
 		assert_error(func(): Result.Err("boom").unwrap("got {0}, wanted Ok")) \
-				.is_runtime_error('Assertion failed: got Result.Err("boom"), wanted Ok')
+				.is_runtime_error('Assertion failed: got Err("boom"), wanted Ok')
 	)
 
 
@@ -109,7 +231,7 @@ func test_unwrap_err_returns_error_when_err():
 func test_unwrap_err_fails_with_default_message_when_ok() -> void:
 	await (
 		assert_error(func(): Result.Ok(42).unwrap_err()) \
-				.is_runtime_error("Assertion failed: [method Result.unwrap_err] called on Result.Ok(42)")
+				.is_runtime_error("Assertion failed: [method Result.unwrap_err] called on Ok(42)")
 	)
 
 
@@ -123,7 +245,7 @@ func test_unwrap_err_fails_with_custom_message_when_ok() -> void:
 func test_unwrap_err_substitutes_self_into_custom_message_when_ok() -> void:
 	await (
 		assert_error(func(): Result.Ok(42).unwrap_err("got {0}, wanted Err")) \
-				.is_runtime_error("Assertion failed: got Result.Ok(42), wanted Err")
+				.is_runtime_error("Assertion failed: got Ok(42), wanted Err")
 	)
 
 
@@ -377,51 +499,26 @@ func test_transpose(
 			[Result.Ok(Option.None), Option.None],
 			[Result.Ok(Option.Some(5)), Option.Some(Result.Ok(5))],
 			[Result.Err("SomeErr"), Option.Some(Result.Err("SomeErr"))],
-			[Result.Ok(42), Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))],
 		],
 ):
+	assert_that(input).is_equal(expected.transpose())
 	assert_that(input.transpose()).is_equal(expected)
+	assert_that(input.transpose().transpose()).is_equal(input)
 
 
-func test_is_equal(
-		a: Result,
-		b: Result,
-		expected: bool,
-		_test_parameters := [
-			[Result.Ok(1.0), Result.Ok(1.0), true],
-			[Result.Ok(1.0), Result.Ok(1.0 + 1e-9), false],
-			[Result.Ok(2), Result.Ok(2), true],
-			[Result.Ok(2), Result.Ok(3), false],
-			[Result.Ok(2), Result.Err(2), false],
-			[Result.Err("x"), Result.Err("x"), true],
-			[Result.Err("x"), Result.Err("y"), false],
-		],
-):
-	assert_bool(a.is_equal(b)).is_equal(expected)
+func test_transpose_with_non_option_value():
+	var ok_value_but_not_option := Result.Ok(42)
+	var some_invalid_data_error := Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
+	assert_that(ok_value_but_not_option.transpose()).is_equal(some_invalid_data_error)
 
 
-func test_is_equal_approx(
-		a: Result,
-		b: Result,
-		expected: bool,
-		_test_parameters := [
-			[Result.Ok(1.0), Result.Ok(1.0), true],
-			[Result.Ok(1.0), Result.Ok(1.0 + 1e-9), true],
-			[Result.Ok("x"), Result.Ok("x"), true],
-			[Result.Ok(1.0), Result.Ok(2.0), false],
-			[Result.Ok("x"), Result.Ok("y"), false],
-			[Result.Ok(1.0), Result.Err(1.0), false],
-		],
-):
-	assert_bool(a.is_equal_approx(b)).is_equal(expected)
+class CustomClass:
+	var prop: int
 
 
-func test_gd_err(
-		error: Error,
-		expected: Result,
-		_test_parameters := [
-			[Error.OK, Result.Ok(Error.OK)],
-			[Error.ERR_INVALID_DATA, Result.Err(error_string(Error.ERR_INVALID_DATA))],
-		],
-):
-	assert_that(Result.GdErr(error)).is_equal(expected)
+	func _init(value: int) -> void:
+		prop = value
+
+
+	func mul_by(x: int) -> int:
+		return prop * x

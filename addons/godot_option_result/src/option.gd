@@ -2,8 +2,6 @@ class_name Option
 extends RefCounted
 ## Immutable.
 
-const _SHARED_IMPL := preload("res://addons/godot_option_result/src/shared_impl.gd")
-
 ## [code]None[/code] holds nothing.
 static var None := new()
 
@@ -23,14 +21,16 @@ static func not_null(x: Variant) -> Option:
 	return Option.None
 
 
-## Private constructor.
 func _init(as_some: bool = false, x: Variant = null) -> void:
 	self._is_some = as_some
 	self._value = x if self._is_some else null
 
 
 func _to_string() -> String:
-	return _SHARED_IMPL.format_compact("Option.Some({0})", self._value) if self._is_some else "Option.None"
+	if not self._is_some:
+		return "None"
+	var value_str := var_to_str(self._value) if self._value is String or self._value is StringName else str(self._value)
+	return "Some({0})".format([value_str])
 
 
 ## Returns whether [member self] is [code]Some(x)[/code].
@@ -195,13 +195,13 @@ func ok_or_call(f: Callable) -> Result:
 	return Result.Err(f.call())
 
 
-## Transposes an [code]Option(Result)[/code] into a [code]Result(Option)[/code].
+## Transposes an [code]Option[Result][/code] into a [code]Result[Option][/code].
 ##
 ## [codeblock]
-## self is Option.None                → Result.Ok(Option.None)
-## self is Option.Some(Result.Ok(x))  → Result.Ok(Option.Some(x))
-## self is Option.Some(Result.Err(e)) → Result.Err(e)
-## self is Option.Some(_)             → Result.GdErr(Error.ERR_INVALID_DATA)
+## self is Option.None                -> Result.Ok(Option.None)
+## self is Option.Some(Result.Ok(x))  -> Result.Ok(Option.Some(x))
+## self is Option.Some(Result.Err(e)) -> Result.Err(e)
+## self is Option.Some(_)             -> Result.GdErr(Error.ERR_INVALID_DATA)
 ## [/codeblock]
 func transpose() -> Result:
 	if not self._is_some:
@@ -214,20 +214,13 @@ func transpose() -> Result:
 	return Result.Ok(Some(result_value._value))
 
 
-## Returns whether the values of [member self] and [param other] are strictly equal with [code]==[/code].
-func is_equal(other: Option) -> bool:
-	if other is Option:
-		if self._is_some and other._is_some:
-			return self._value == other._value
-		return self._is_some == other._is_some
+func _iter_init(_iter: Array) -> bool:
+	return self._is_some
+
+
+func _iter_next(_iter: Array) -> bool:
 	return false
 
 
-## Returns whether the values of [member self] and [param other] satisfy the [code]is_equal_approx[/code] function (if
-## applicable), otherwise whether they are strictly equal with [code]==[/code].
-func is_equal_approx(other: Option) -> bool:
-	if other is Option:
-		if self._is_some and other._is_some:
-			return _SHARED_IMPL.equal_approx(self._value, other._value)
-		return self._is_some == other._is_some
-	return false
+func _iter_get(_iter: Variant) -> Variant:
+	return self._value

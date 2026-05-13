@@ -2,6 +2,24 @@ class_name OptionTest
 extends GdUnitTestSuite
 
 
+func test_to_string_with_simple_types(
+		input: Option,
+		expected: String,
+		_test_parameters := [
+			[Option.None, "None"],
+			[Option.Some(null), "Some(<null>)"],
+			[Option.Some(42), "Some(42)"],
+			[Option.Some("42"), 'Some("42")'],
+			[Option.Some(&"42"), 'Some(&"42")'],
+			[Option.Some([1, 2, 3]), "Some([1, 2, 3])"],
+			[Option.Some(["1", "2", "3"]), 'Some(["1", "2", "3"])'],
+			[Option.Some({ a = 1 }), 'Some({ &"a": 1 })'],
+			[Option.Some({ a = "1" }), 'Some({ &"a": "1" })'],
+		],
+):
+	assert_str(str(input)).is_equal(expected)
+
+
 func test_is_some(
 		input: Option,
 		expected: bool,
@@ -48,6 +66,20 @@ func test_is_none_or(
 	assert_bool(input.is_none_or(func(x): return x > 1)).is_equal(expected)
 
 
+func test_iterate_none():
+	var found := []
+	for value in Option.None:
+		found.append(value)
+	assert_array(found).is_empty()
+
+
+func test_iterate_some():
+	var found := []
+	for value in Option.Some(42):
+		found.append(value)
+	assert_array(found).contains_exactly(42)
+
+
 func test_pipe(
 		input: Option,
 		call_expected: bool,
@@ -67,22 +99,16 @@ func test_unwrap_returns_value_when_some():
 
 
 func test_unwrap_fails_with_default_message_when_none() -> void:
-	await (
-		assert_error(func(): Option.None.unwrap()) \
-				.is_runtime_error("Assertion failed: [method Option.unwrap] called on Option.None")
-	)
+	await assert_error(Option.None.unwrap).is_runtime_error("Assertion failed: [method Option.unwrap] called on None")
 
 
 func test_unwrap_fails_with_custom_message_when_none() -> void:
-	await (
-		assert_error(func(): Option.None.unwrap("expected a value")).is_runtime_error("Assertion failed: expected a value")
-	)
+	await assert_error(Option.None.unwrap.bind("expected a value")).is_runtime_error("Assertion failed: expected a value")
 
 
 func test_unwrap_substitutes_self_into_custom_message_when_none() -> void:
 	await (
-		assert_error(func(): Option.None.unwrap("got {0}, wanted Some")) \
-				.is_runtime_error("Assertion failed: got Option.None, wanted Some")
+		assert_error(Option.None.unwrap.bind("{0} must be some")).is_runtime_error("Assertion failed: None must be some")
 	)
 
 
@@ -307,38 +333,12 @@ func test_transpose(
 			[Option.Some(Result.Err("SomeErr")), Result.Err("SomeErr")],
 		],
 ):
+	assert_that(input).is_equal(expected.transpose())
 	assert_that(input.transpose()).is_equal(expected)
+	assert_that(input.transpose().transpose()).is_equal(input)
 
 
-func test_transpose_some_of_non_result_becomes_gd_err():
-	assert_that(Option.Some(42).transpose()).is_equal(Result.GdErr(Error.ERR_INVALID_DATA))
-
-
-func test_is_equal(
-		a: Option,
-		b: Option,
-		expected: bool,
-		_test_parameters := [
-			[Option.Some(2), Option.Some(2), true],
-			[Option.Some(2), Option.Some(3), false],
-			[Option.Some(2), Option.None, false],
-			[Option.None, Option.None, true],
-		],
-):
-	assert_bool(a.is_equal(b)).is_equal(expected)
-
-
-func test_is_equal_approx(
-		a: Option,
-		b: Option,
-		expected: bool,
-		_test_parameters := [
-			[Option.Some(1.0), Option.Some(1.0), true],
-			[Option.Some(1.0), Option.Some(1.0 + 1e-9), true],
-			[Option.Some("x"), Option.Some("x"), true],
-			[Option.Some(1.0), Option.Some(2.0), false],
-			[Option.Some("x"), Option.Some("y"), false],
-			[Option.Some(1.0), Option.None, false],
-		],
-):
-	assert_bool(a.is_equal_approx(b)).is_equal(expected)
+func test_transpose_with_non_result_value():
+	var some_value_but_not_result := Option.Some(42)
+	var invalid_data_error := Result.GdErr(Error.ERR_INVALID_DATA)
+	assert_that(some_value_but_not_result.transpose()).is_equal(invalid_data_error)

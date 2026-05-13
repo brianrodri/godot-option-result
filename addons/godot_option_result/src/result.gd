@@ -2,8 +2,6 @@ class_name Result
 extends RefCounted
 ## Immutable.
 
-const _SHARED_IMPL := preload("res://addons/godot_option_result/src/shared_impl.gd")
-
 var _is_ok: bool
 var _value: Variant
 
@@ -26,14 +24,38 @@ static func GdErr(e: Error) -> Result:
 	return Err(error_string(e))
 
 
-## Private constructor.
+## [code]Ok(instance.member)[/code] when [param member_name] is a valid property on [param instance], otherwise some
+## [code]GdErr[/code].
+static func take_member(instance: Variant, member_name: StringName) -> Result:
+	if not is_instance_valid(instance):
+		return GdErr(ERR_INVALID_PARAMETER)
+	if member_name not in instance:
+		return GdErr(ERR_INVALID_DECLARATION)
+	return Ok(instance.get(member_name))
+
+
+## [code]Ok(instance.method(...method_args))[/code] when [param method_name] is a valid method on [param instance],
+## otherwise some [code]GdErr[/code]. The call will be made with [param method_args] as arguments.
+static func make_method_call(instance: Variant, method_name: StringName, ...method_args: Array) -> Result:
+	if not is_instance_valid(instance):
+		return GdErr(ERR_INVALID_PARAMETER)
+	if not instance.has_method(method_name):
+		return GdErr(ERR_INVALID_DECLARATION)
+	var method := Callable(instance, method_name)
+	if len(method_args) != method.get_argument_count():
+		return GdErr(ERR_PARAMETER_RANGE_ERROR)
+	return Ok(method.callv(method_args))
+
+
 func _init(as_ok: bool, value: Variant) -> void:
 	self._is_ok = as_ok
 	self._value = value
 
 
 func _to_string() -> String:
-	return _SHARED_IMPL.format_compact("Result.Ok({0})" if self._is_ok else "Result.Err({0})", self._value)
+	var format_str := "Ok({0})" if self._is_ok else "Err({0})"
+	var value_str := var_to_str(self._value) if self._value is String or self._value is StringName else str(self._value)
+	return format_str.format([value_str])
 
 
 ## Returns whether [member self] is [code]Ok(x)[/code].
@@ -230,13 +252,13 @@ func err() -> Option:
 	return Option.Some(self._value)
 
 
-## Transposes a [code]Result(Option)[/code] into an [code]Option(Result)[/code].
+## Transposes a [code]Result[Option][/code] into an [code]Option[Result][/code].
 ##
 ## [codeblock]
-## self is Result.Ok(Option.None)    → Option.None
-## self is Result.Ok(Option.Some(x)) → Option.Some(Result.Ok(x))
-## self is Result.Err(e)             → Option.Some(Result.Err(e))
-## self is Result.Ok(_)              → Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
+## self is Result.Ok(Option.None)    -> Option.None
+## self is Result.Ok(Option.Some(x)) -> Option.Some(Result.Ok(x))
+## self is Result.Err(e)             -> Option.Some(Result.Err(e))
+## self is Result.Ok(_)              -> Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
 ## [/codeblock]
 func transpose() -> Option:
 	if not self._is_ok:
@@ -247,18 +269,3 @@ func transpose() -> Option:
 	if option_value._is_some:
 		return Option.Some(Result.Ok(option_value._value))
 	return Option.None
-
-
-## Returns whether [member self] and [param other] are strictly equal with [code]==[/code].
-func is_equal(other: Result) -> bool:
-	if other is Result:
-		return self._is_ok == other._is_ok and self._value == other._value
-	return false
-
-
-## Returns whether [member self] and [param other] satisfy the [code]is_equal_approx[/code] function (if applicable),
-## otherwise whether they are strictly equal with [code]==[/code].
-func is_equal_approx(other: Result) -> bool:
-	if other is Result:
-		return self._is_ok == other._is_ok and _SHARED_IMPL.equal_approx(self._value, other._value)
-	return false
