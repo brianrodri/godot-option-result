@@ -109,7 +109,8 @@ func test_make_method_call(
 		expectation: Result,
 		_test_parameters := [
 			[auto_free(Node.new()), &"is_node_ready", [], Result.Ok(false)],
-			[auto_free(Node.new()), &"is_food_ready", [auto_free(Node.new())], Result.GdErr(ERR_INVALID_DECLARATION)],
+			[auto_free(Node.new()), &"is_food_ready", [], Result.GdErr(ERR_INVALID_DECLARATION)],
+			[auto_free(Node.new()), &"can_process", [1, 2, 3], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
 			[null, &"is_node_ready", [], Result.GdErr(ERR_INVALID_PARAMETER)],
 			[Vector3.ONE, &"is_equal_approx", [Vector3.ONE], Result.GdErr(ERR_INVALID_PARAMETER)],
 		],

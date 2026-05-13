@@ -41,7 +41,10 @@ static func make_method_call(instance: Variant, method_name: StringName, ...meth
 		return GdErr(ERR_INVALID_PARAMETER)
 	if not instance.has_method(method_name):
 		return GdErr(ERR_INVALID_DECLARATION)
-	return Ok(Callable(instance, method_name).callv(method_args))
+	var method := Callable(instance, method_name)
+	if len(method_args) != method.get_argument_count():
+		return GdErr(ERR_PARAMETER_RANGE_ERROR)
+	return Ok(method.callv(method_args))
 
 
 ## Private constructor.
