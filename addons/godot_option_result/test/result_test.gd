@@ -84,7 +84,7 @@ func test_unwrap_returns_value_when_ok():
 func test_unwrap_fails_with_default_message_when_err() -> void:
 	await (
 		assert_error(func(): Result.Err(42).unwrap()) \
-				.is_runtime_error("Assertion failed: [method Result.unwrap] called on Result.Err(42)")
+				.is_runtime_error("Assertion failed: [method Result.unwrap] called on Err(42)")
 	)
 
 
@@ -98,7 +98,7 @@ func test_unwrap_fails_with_custom_message_when_err() -> void:
 func test_unwrap_substitutes_self_into_custom_message_when_err() -> void:
 	await (
 		assert_error(func(): Result.Err("boom").unwrap("got {0}, wanted Ok")) \
-				.is_runtime_error('Assertion failed: got Result.Err("boom"), wanted Ok')
+				.is_runtime_error('Assertion failed: got Err(boom), wanted Ok')
 	)
 
 
@@ -109,7 +109,7 @@ func test_unwrap_err_returns_error_when_err():
 func test_unwrap_err_fails_with_default_message_when_ok() -> void:
 	await (
 		assert_error(func(): Result.Ok(42).unwrap_err()) \
-				.is_runtime_error("Assertion failed: [method Result.unwrap_err] called on Result.Ok(42)")
+				.is_runtime_error("Assertion failed: [method Result.unwrap_err] called on Ok(42)")
 	)
 
 
@@ -123,7 +123,7 @@ func test_unwrap_err_fails_with_custom_message_when_ok() -> void:
 func test_unwrap_err_substitutes_self_into_custom_message_when_ok() -> void:
 	await (
 		assert_error(func(): Result.Ok(42).unwrap_err("got {0}, wanted Err")) \
-				.is_runtime_error("Assertion failed: got Result.Ok(42), wanted Err")
+				.is_runtime_error("Assertion failed: got Ok(42), wanted Err")
 	)
 
 
@@ -381,39 +381,6 @@ func test_transpose(
 		],
 ):
 	assert_that(input.transpose()).is_equal(expected)
-
-
-func test_is_equal(
-		a: Result,
-		b: Result,
-		expected: bool,
-		_test_parameters := [
-			[Result.Ok(1.0), Result.Ok(1.0), true],
-			[Result.Ok(1.0), Result.Ok(1.0 + 1e-9), false],
-			[Result.Ok(2), Result.Ok(2), true],
-			[Result.Ok(2), Result.Ok(3), false],
-			[Result.Ok(2), Result.Err(2), false],
-			[Result.Err("x"), Result.Err("x"), true],
-			[Result.Err("x"), Result.Err("y"), false],
-		],
-):
-	assert_bool(a.is_equal(b)).is_equal(expected)
-
-
-func test_is_equal_approx(
-		a: Result,
-		b: Result,
-		expected: bool,
-		_test_parameters := [
-			[Result.Ok(1.0), Result.Ok(1.0), true],
-			[Result.Ok(1.0), Result.Ok(1.0 + 1e-9), true],
-			[Result.Ok("x"), Result.Ok("x"), true],
-			[Result.Ok(1.0), Result.Ok(2.0), false],
-			[Result.Ok("x"), Result.Ok("y"), false],
-			[Result.Ok(1.0), Result.Err(1.0), false],
-		],
-):
-	assert_bool(a.is_equal_approx(b)).is_equal(expected)
 
 
 func test_gd_err(

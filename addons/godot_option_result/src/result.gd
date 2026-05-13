@@ -2,8 +2,6 @@ class_name Result
 extends RefCounted
 ## Immutable.
 
-const _SHARED_IMPL := preload("res://addons/godot_option_result/src/shared_impl.gd")
-
 var _is_ok: bool
 var _value: Variant
 
@@ -33,7 +31,7 @@ func _init(as_ok: bool, value: Variant) -> void:
 
 
 func _to_string() -> String:
-	return _SHARED_IMPL.format_compact("Result.Ok({0})" if self._is_ok else "Result.Err({0})", self._value)
+	return ("Ok({0})" if self._is_ok else "Err({0})").format([str(self._value)])
 
 
 ## Returns whether [member self] is [code]Ok(x)[/code].
@@ -247,18 +245,3 @@ func transpose() -> Option:
 	if option_value._is_some:
 		return Option.Some(Result.Ok(option_value._value))
 	return Option.None
-
-
-## Returns whether [member self] and [param other] are strictly equal with [code]==[/code].
-func is_equal(other: Result) -> bool:
-	if other is Result:
-		return self._is_ok == other._is_ok and self._value == other._value
-	return false
-
-
-## Returns whether [member self] and [param other] satisfy the [code]is_equal_approx[/code] function (if applicable),
-## otherwise whether they are strictly equal with [code]==[/code].
-func is_equal_approx(other: Result) -> bool:
-	if other is Result:
-		return self._is_ok == other._is_ok and _SHARED_IMPL.equal_approx(self._value, other._value)
-	return false

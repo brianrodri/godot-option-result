@@ -2,8 +2,6 @@ class_name Option
 extends RefCounted
 ## Immutable.
 
-const _SHARED_IMPL := preload("res://addons/godot_option_result/src/shared_impl.gd")
-
 ## [code]None[/code] holds nothing.
 static var None := new()
 
@@ -30,7 +28,7 @@ func _init(as_some: bool = false, x: Variant = null) -> void:
 
 
 func _to_string() -> String:
-	return _SHARED_IMPL.format_compact("Option.Some({0})", self._value) if self._is_some else "Option.None"
+	return "Some({0})".format([str(self._value)]) if self._is_some else "None"
 
 
 ## Returns whether [member self] is [code]Some(x)[/code].
@@ -212,22 +210,3 @@ func transpose() -> Result:
 	if result_value.is_err():
 		return result_value
 	return Result.Ok(Some(result_value._value))
-
-
-## Returns whether the values of [member self] and [param other] are strictly equal with [code]==[/code].
-func is_equal(other: Option) -> bool:
-	if other is Option:
-		if self._is_some and other._is_some:
-			return self._value == other._value
-		return self._is_some == other._is_some
-	return false
-
-
-## Returns whether the values of [member self] and [param other] satisfy the [code]is_equal_approx[/code] function (if
-## applicable), otherwise whether they are strictly equal with [code]==[/code].
-func is_equal_approx(other: Option) -> bool:
-	if other is Option:
-		if self._is_some and other._is_some:
-			return _SHARED_IMPL.equal_approx(self._value, other._value)
-		return self._is_some == other._is_some
-	return false

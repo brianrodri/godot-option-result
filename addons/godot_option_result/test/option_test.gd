@@ -69,7 +69,7 @@ func test_unwrap_returns_value_when_some():
 func test_unwrap_fails_with_default_message_when_none() -> void:
 	await (
 		assert_error(func(): Option.None.unwrap()) \
-				.is_runtime_error("Assertion failed: [method Option.unwrap] called on Option.None")
+				.is_runtime_error("Assertion failed: [method Option.unwrap] called on None")
 	)
 
 
@@ -82,7 +82,7 @@ func test_unwrap_fails_with_custom_message_when_none() -> void:
 func test_unwrap_substitutes_self_into_custom_message_when_none() -> void:
 	await (
 		assert_error(func(): Option.None.unwrap("got {0}, wanted Some")) \
-				.is_runtime_error("Assertion failed: got Option.None, wanted Some")
+				.is_runtime_error("Assertion failed: got None, wanted Some")
 	)
 
 
@@ -312,33 +312,3 @@ func test_transpose(
 
 func test_transpose_some_of_non_result_becomes_gd_err():
 	assert_that(Option.Some(42).transpose()).is_equal(Result.GdErr(Error.ERR_INVALID_DATA))
-
-
-func test_is_equal(
-		a: Option,
-		b: Option,
-		expected: bool,
-		_test_parameters := [
-			[Option.Some(2), Option.Some(2), true],
-			[Option.Some(2), Option.Some(3), false],
-			[Option.Some(2), Option.None, false],
-			[Option.None, Option.None, true],
-		],
-):
-	assert_bool(a.is_equal(b)).is_equal(expected)
-
-
-func test_is_equal_approx(
-		a: Option,
-		b: Option,
-		expected: bool,
-		_test_parameters := [
-			[Option.Some(1.0), Option.Some(1.0), true],
-			[Option.Some(1.0), Option.Some(1.0 + 1e-9), true],
-			[Option.Some("x"), Option.Some("x"), true],
-			[Option.Some(1.0), Option.Some(2.0), false],
-			[Option.Some("x"), Option.Some("y"), false],
-			[Option.Some(1.0), Option.None, false],
-		],
-):
-	assert_bool(a.is_equal_approx(b)).is_equal(expected)
