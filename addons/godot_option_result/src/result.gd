@@ -228,13 +228,13 @@ func err() -> Option:
 	return Option.Some(self._value)
 
 
-## Transposes a [code]Result(Option)[/code] into an [code]Option(Result)[/code].
+## Transposes a [code]Result[Option][/code] into an [code]Option[Result][/code].
 ##
 ## [codeblock]
-## self is Result.Ok(Option.None)    → Option.None
-## self is Result.Ok(Option.Some(x)) → Option.Some(Result.Ok(x))
-## self is Result.Err(e)             → Option.Some(Result.Err(e))
-## self is Result.Ok(_)              → Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
+## self is Result.Ok(Option.None)    -> Option.None
+## self is Result.Ok(Option.Some(x)) -> Option.Some(Result.Ok(x))
+## self is Result.Err(e)             -> Option.Some(Result.Err(e))
+## self is Result.Ok(_)              -> Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
 ## [/codeblock]
 func transpose() -> Option:
 	if not self._is_ok:

@@ -193,13 +193,13 @@ func ok_or_call(f: Callable) -> Result:
 	return Result.Err(f.call())
 
 
-## Transposes an [code]Option(Result)[/code] into a [code]Result(Option)[/code].
+## Transposes an [code]Option[Result][/code] into a [code]Result[Option][/code].
 ##
 ## [codeblock]
-## self is Option.None                → Result.Ok(Option.None)
-## self is Option.Some(Result.Ok(x))  → Result.Ok(Option.Some(x))
-## self is Option.Some(Result.Err(e)) → Result.Err(e)
-## self is Option.Some(_)             → Result.GdErr(Error.ERR_INVALID_DATA)
+## self is Option.None                -> Result.Ok(Option.None)
+## self is Option.Some(Result.Ok(x))  -> Result.Ok(Option.Some(x))
+## self is Option.Some(Result.Err(e)) -> Result.Err(e)
+## self is Option.Some(_)             -> Result.GdErr(Error.ERR_INVALID_DATA)
 ## [/codeblock]
 func transpose() -> Result:
 	if not self._is_some:
