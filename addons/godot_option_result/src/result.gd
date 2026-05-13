@@ -16,8 +16,17 @@ static func Err(e: Variant = null) -> Result:
 	return Result.new(false, e)
 
 
-## [code]Ok(o.member)[/code] when [param member_name] is a member of [param instance], otherwise [code]Err(e)[/code].
-static func member_access(instance: Variant, member_name: StringName) -> Result:
+## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise
+## [code]Err(error_string(e))[/code].
+static func GdErr(e: Error) -> Result:
+	if e == Error.OK:
+		return Ok(Error.OK)
+	return Err(error_string(e))
+
+
+## [code]Ok(instance.member)[/code] when [param member_name] is a valid property on [param instance], otherwise
+## [code]Err(error_string)[/code].
+static func take_member(instance: Variant, member_name: StringName) -> Result:
 	if not is_instance_valid(instance):
 		return GdErr(ERR_INVALID_PARAMETER)
 	if member_name not in instance:
@@ -25,22 +34,14 @@ static func member_access(instance: Variant, member_name: StringName) -> Result:
 	return Ok(instance.get(member_name))
 
 
-## [code]Ok(o.method())[/code] when [param method_name] is a method of [param instance], otherwise [code]Err(e)[/code].
-## The call will be made with the [param method_args] as arguments when it exists.
-static func method_call(instance: Variant, method_name: StringName, ...method_args: Array) -> Result:
+## [code]Ok(instance.method(...method_args))[/code] when [param method_name] is a valid method on [param instance],
+## otherwise [code]Err(error_string)[/code]. The call will be made with [param method_args] as arguments.
+static func make_method_call(instance: Variant, method_name: StringName, ...method_args: Array) -> Result:
 	if not is_instance_valid(instance):
 		return GdErr(ERR_INVALID_PARAMETER)
 	if not instance.has_method(method_name):
 		return GdErr(ERR_INVALID_DECLARATION)
 	return Ok(Callable(instance, method_name).callv(method_args))
-
-
-## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise
-## [code]Err(error_string(e))[/code].
-static func GdErr(e: Error) -> Result:
-	if e == Error.OK:
-		return Ok(Error.OK)
-	return Err(error_string(e))
 
 
 ## Private constructor.
@@ -50,7 +51,9 @@ func _init(as_ok: bool, value: Variant) -> void:
 
 
 func _to_string() -> String:
-	return ("Ok({0})" if self._is_ok else "Err({0})").format([str(self._value)])
+	var format_str := "Ok({0})" if self._is_ok else "Err({0})"
+	var value_str := var_to_str(self._value) if self._value is String or self._value is StringName else str(self._value)
+	return format_str.format([value_str])
 
 
 ## Returns whether [member self] is [code]Ok(x)[/code].

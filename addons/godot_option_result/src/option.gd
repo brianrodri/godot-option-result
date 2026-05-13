@@ -28,7 +28,10 @@ func _init(as_some: bool = false, x: Variant = null) -> void:
 
 
 func _to_string() -> String:
-	return "Some({0})".format([str(self._value)]) if self._is_some else "None"
+	if not self._is_some:
+		return "None"
+	var value_str := var_to_str(self._value) if self._value is String or self._value is StringName else str(self._value)
+	return "Some({0})".format([value_str])
 
 
 ## Returns whether [member self] is [code]Some(x)[/code].
