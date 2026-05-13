@@ -2,6 +2,32 @@ class_name ResultTest
 extends GdUnitTestSuite
 
 
+func test_member_access(
+		instance: Variant,
+		member_name: StringName,
+		expectation: Result,
+		_test_parameters := [
+			[auto_free(Node.new()), &"process_mode", Result.Ok(PROCESS_MODE_INHERIT)],
+			[Vector3.ONE, &"x", Result.GdErr(ERR_INVALID_PARAMETER)],
+		],
+):
+	assert_that(Result.member_access(instance, member_name)).is_equal(expectation)
+
+
+func test_method_call(
+		instance: Variant,
+		method_name: StringName,
+		method_args: Array,
+		expectation: Result,
+		_test_parameters := [
+			[auto_free(Node.new()), &"is_node_ready", [], Result.Ok(false)],
+			[auto_free(Node.new()), &"is_greater_than", [auto_free(Node.new())], Result.Ok(false)],
+			[Vector3.ONE, &"is_equal_approx", [Vector3.ONE], Result.GdErr(ERR_INVALID_PARAMETER)],
+		],
+):
+	assert_that(Result.method_call.bindv(method_args).call(instance, method_name)).is_equal(expectation)
+
+
 func test_is_ok(
 		result: Result,
 		expected: bool,

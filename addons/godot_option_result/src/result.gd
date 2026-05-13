@@ -16,6 +16,25 @@ static func Err(e: Variant = null) -> Result:
 	return Result.new(false, e)
 
 
+## [code]Ok(o.member)[/code] when [param member_name] is a member of [param instance], otherwise [code]Err(e)[/code].
+static func member_access(instance: Variant, member_name: StringName) -> Result:
+	if not is_instance_valid(instance):
+		return GdErr(ERR_INVALID_PARAMETER)
+	if member_name not in instance:
+		return GdErr(ERR_INVALID_DECLARATION)
+	return Ok(instance.get(member_name))
+
+
+## [code]Ok(o.method())[/code] when [param method_name] is a method of [param instance], otherwise [code]Err(e)[/code].
+## The call will be made with the [param method_args] as arguments when it exists.
+static func method_call(instance: Variant, method_name: StringName, ...method_args: Array) -> Result:
+	if not is_instance_valid(instance):
+		return GdErr(ERR_INVALID_PARAMETER)
+	if not instance.has_method(method_name):
+		return GdErr(ERR_INVALID_DECLARATION)
+	return Ok(Callable(instance, method_name).callv(method_args))
+
+
 ## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise
 ## [code]Err(error_string(e))[/code].
 static func GdErr(e: Error) -> Result:
