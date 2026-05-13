@@ -33,18 +33,6 @@ func _to_string() -> String:
 	return "Some({0})".format([value_str])
 
 
-func _iter_init(_iter: Array) -> bool:
-	return self._is_some
-
-
-func _iter_next(_iter: Array) -> bool:
-	return false
-
-
-func _iter_get(_iter: Variant) -> Variant:
-	return self._value
-
-
 ## Returns whether [member self] is [code]Some(x)[/code].
 func is_some() -> bool:
 	return self._is_some
@@ -224,3 +212,15 @@ func transpose() -> Result:
 	if result_value.is_err():
 		return result_value
 	return Result.Ok(Some(result_value._value))
+
+
+func _iter_init(_iter: Array) -> bool:
+	return self._is_some
+
+
+func _iter_next(_iter: Array) -> bool:
+	return false
+
+
+func _iter_get(_iter: Variant) -> Variant:
+	return self._value
