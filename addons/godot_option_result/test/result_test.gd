@@ -10,6 +10,7 @@ func test_to_string_with_simple_types(
 			[Result.Ok(null), "Ok(<null>)"],
 			[Result.Ok(42), "Ok(42)"],
 			[Result.Ok("42"), 'Ok("42")'],
+			[Result.Ok(&"42"), 'Ok(&"42")'],
 			[Result.Ok([1, 2, 3]), "Ok([1, 2, 3])"],
 			[Result.Ok(["1", "2", "3"]), 'Ok(["1", "2", "3"])'],
 			[Result.Ok({ a = 1 }), 'Ok({ &"a": 1 })'],

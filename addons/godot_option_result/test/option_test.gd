@@ -10,6 +10,7 @@ func test_to_string_with_simple_types(
 			[Option.Some(null), "Some(<null>)"],
 			[Option.Some(42), "Some(42)"],
 			[Option.Some("42"), 'Some("42")'],
+			[Option.Some(&"42"), 'Some(&"42")'],
 			[Option.Some([1, 2, 3]), "Some([1, 2, 3])"],
 			[Option.Some(["1", "2", "3"]), 'Some(["1", "2", "3"])'],
 			[Option.Some({ a = 1 }), 'Some({ &"a": 1 })'],
