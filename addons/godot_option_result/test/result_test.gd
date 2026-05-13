@@ -97,6 +97,8 @@ func test_take_member(
 			[auto_free(Node.new()), &"process_lols", Result.GdErr(ERR_INVALID_DECLARATION)],
 			[null, &"process_mode", Result.GdErr(ERR_INVALID_PARAMETER)],
 			[Vector3.ONE, &"x", Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(CustomClass.new(42)), &"prop", Result.Ok(42)],
+			[auto_free(CustomClass.new(42)), &"unknown_prop", Result.GdErr(ERR_INVALID_DECLARATION)],
 		],
 ):
 	assert_that(Result.take_member(instance, member_name)).is_equal(expectation)
@@ -113,6 +115,10 @@ func test_make_method_call(
 			[auto_free(Node.new()), &"can_process", [1, 2, 3], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
 			[null, &"is_node_ready", [], Result.GdErr(ERR_INVALID_PARAMETER)],
 			[Vector3.ONE, &"is_equal_approx", [Vector3.ONE], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [2], Result.Ok(84)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [2, 3], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
+			[auto_free(CustomClass.new(42)), &"mul_by_two", [2], Result.GdErr(ERR_INVALID_DECLARATION)],
 		],
 ):
 	assert_that(Result.make_method_call.bindv(method_args).call(instance, method_name)).is_equal(expectation)
@@ -504,3 +510,15 @@ func test_transpose_with_non_option_value():
 	var ok_value_but_not_option := Result.Ok(42)
 	var some_invalid_data_error := Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
 	assert_that(ok_value_but_not_option.transpose()).is_equal(some_invalid_data_error)
+
+
+class CustomClass:
+	var prop: int
+
+
+	func _init(value: int) -> void:
+		prop = value
+
+
+	func mul_by(x: int) -> int:
+		return prop * x
