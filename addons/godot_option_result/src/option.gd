@@ -28,8 +28,8 @@ static func member(instance: Variant, member_name: StringName) -> Option:
 	return result.ok()
 
 
-## Returns [code]Some(x.method(...method_args))[/code] when [param method_name] is a valid method on [param instance]
-## that can be invoked with [param method_args], otherwise [code]None[/code].
+## Returns [code]Some(instance.method(...method_args))[/code] when [param method_name] is a valid method on
+## [param instance] that can be invoked with [param method_args], otherwise [code]None[/code].
 static func method_call(instance: Variant, method_name: StringName, ...method_args: Array) -> Option:
 	if method_args.is_empty():
 		return Result.safe_method_call(instance, method_name).ok()
@@ -162,6 +162,22 @@ func and_then_call(f: Callable) -> Option:
 		var other: Option = f.call(self._value)
 		return other
 	return self
+
+
+## [code]Some(x.member)[/code] when [param member_name] is a valid property on [code]x[/code] from [member self],
+## otherwise [code]None[/code].
+func and_then_member(member_name: StringName) -> Option:
+	if self._is_some:
+		return member(self._value, member_name)
+	return self
+
+
+## Returns [code]Some(x.method(...method_args))[/code] when [param method_name] is a valid method on
+## [code]x[/code] from [member self] that can be invoked with [param method_args], otherwise [code]None[/code].
+func and_then_method_call(method_name: StringName, ...method_args: Array) -> Option:
+	if self._is_some:
+		return method_call.bindv(method_args).call(self._value, method_name)
+	return None
 
 
 ## Returns [param other] when [member self] is [code]None[/code], otherwise [member self].

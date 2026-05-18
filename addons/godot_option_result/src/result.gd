@@ -188,6 +188,24 @@ func and_then_call(f: Callable) -> Result:
 	return self
 
 
+## [code]Ok(x.member)[/code] when [param member_name] is a valid property on [code]x[/code] from [member self],
+## otherwise some [code]GdErr[/code].
+func and_then_member(member_name: StringName) -> Result:
+	if self._is_ok:
+		var other: Result = safe_member(self._value, member_name)
+		return other
+	return self
+
+
+## Returns [code]Ok(x.method(...method_args))[/code] when [param method_name] is a valid method on
+## [code]x[/code] from [member self] that can be invoked with [param method_args], otherwise some [code]GdErr[/code].
+func and_then_method_call(method_name: StringName, ...method_args: Array) -> Result:
+	if self._is_ok:
+		var other: Result = safe_method_call.bindv(method_args).call(self._value, method_name)
+		return other
+	return self
+
+
 ## Returns [param other] when [member self] is [code]Err(e)[/code], otherwise [member self].
 func or_else(other: Result) -> Result:
 	if self._is_ok:
@@ -202,6 +220,24 @@ func or_else_call(f: Callable) -> Result:
 	if self._is_ok:
 		return self
 	var other: Result = f.call(self._value)
+	return other
+
+
+## Returns [code]Ok(e.member)[/code] when [param member_name] is a valid property on [code]e[/code] from [member self],
+## otherwise some [code]GdErr[/code].
+func or_else_member(member_name: StringName) -> Result:
+	if self._is_ok:
+		return self
+	var other: Result = safe_member(self._value, member_name)
+	return other
+
+
+## Returns [code]Ok(e.method(...method_args))[/code] when [param method_name] is a valid method on
+## [code]e[/code] from [member self] that can be invoked with [param method_args], otherwise some [code]GdErr[/code].
+func or_else_method_call(method_name: StringName, ...method_args: Array) -> Result:
+	if self._is_ok:
+		return self
+	var other: Result = safe_method_call.bindv(method_args).call(self._value, method_name)
 	return other
 
 
