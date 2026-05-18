@@ -49,6 +49,20 @@ func _to_string() -> String:
 	return "Some({0})".format([value_str])
 
 
+func is_equal_by(binary_op: Callable, other: Option) -> bool:
+	if self._is_some and other._is_some:
+		var result: Result = Result.safe_call(binary_op, self._value, other._value)
+		return result.unwrap_or(false)
+	return self._is_some == other._is_some
+
+
+func is_equal_by_method(method_name: StringName, other: Option) -> bool:
+	if self._is_some and other._is_some:
+		var result: Result = Result.safe_method_call(self._value, method_name, other._value)
+		return result.unwrap_or(false)
+	return self._is_some == other._is_some
+
+
 ## Returns whether [member self] is [code]Some(x)[/code].
 func is_some() -> bool:
 	return self._is_some
