@@ -88,7 +88,7 @@ func test_to_string_with_builtin_gd_errors(
 	assert_str(str(result)).is_equal('Err("{0}")'.format([expected_reason]))
 
 
-func test_take_member(
+func test_safe_member(
 		instance: Variant,
 		member_name: StringName,
 		expectation: Result,
@@ -101,10 +101,10 @@ func test_take_member(
 			[auto_free(CustomClass.new(42)), &"unknown_prop", Result.GdErr(ERR_INVALID_DECLARATION)],
 		],
 ):
-	assert_that(Result.take_member(instance, member_name)).is_equal(expectation)
+	assert_that(Result.safe_member(instance, member_name)).is_equal(expectation)
 
 
-func test_make_method_call(
+func test_safe_method_call(
 		instance: Variant,
 		method_name: StringName,
 		method_args: Array,
@@ -121,7 +121,7 @@ func test_make_method_call(
 			[auto_free(CustomClass.new(42)), &"mul_by_two", [2], Result.GdErr(ERR_INVALID_DECLARATION)],
 		],
 ):
-	assert_that(Result.make_method_call.bindv(method_args).call(instance, method_name)).is_equal(expectation)
+	assert_that(Result.safe_method_call.bindv(method_args).call(instance, method_name)).is_equal(expectation)
 
 
 func test_is_ok(
