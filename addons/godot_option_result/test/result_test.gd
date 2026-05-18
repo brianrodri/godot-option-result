@@ -88,17 +88,36 @@ func test_to_string_with_builtin_gd_errors(
 	assert_str(str(result)).is_equal('Err("{0}")'.format([expected_reason]))
 
 
+func test_safe_call(
+		f: Callable,
+		args: Array,
+		expectation: Result,
+		_test_parameters := [
+			[auto_free(Node.new()).is_node_ready, [], Result.Ok(false)],
+			[Callable.create(auto_free(Node.new()), &"is_food_ready"), [], Result.GdErr(ERR_INVALID_DATA)],
+			[auto_free(Node.new()).can_process, [1, 2, 3], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[Callable.create(null, &"is_node_ready"), [], Result.GdErr(ERR_INVALID_DATA)],
+			[Vector3.ONE.is_equal_approx, [Vector3.ONE], Result.Ok(true)],
+			[auto_free(CustomClass.new(42)).mul_by, [2], Result.Ok(84)],
+			[auto_free(CustomClass.new(42)).mul_by, [], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(CustomClass.new(42)).mul_by, [2, 3], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[Callable.create(auto_free(CustomClass.new(42)), &"mul_by_two"), [2], Result.GdErr(ERR_INVALID_DATA)],
+		],
+):
+	assert_that(Result.safe_call.bindv(args).call(f)).is_equal(expectation)
+
+
 func test_safe_member(
 		instance: Variant,
 		member_name: StringName,
 		expectation: Result,
 		_test_parameters := [
 			[auto_free(Node.new()), &"process_mode", Result.Ok(PROCESS_MODE_INHERIT)],
-			[auto_free(Node.new()), &"process_lols", Result.GdErr(ERR_INVALID_DECLARATION)],
-			[null, &"process_mode", Result.GdErr(ERR_INVALID_PARAMETER)],
-			[Vector3.ONE, &"x", Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(Node.new()), &"process_lols", Result.GdErr(ERR_INVALID_PARAMETER)],
+			[null, &"process_mode", Result.GdErr(ERR_INVALID_DATA)],
+			[Vector3.ONE, &"x", Result.GdErr(ERR_INVALID_DATA)],
 			[auto_free(CustomClass.new(42)), &"prop", Result.Ok(42)],
-			[auto_free(CustomClass.new(42)), &"unknown_prop", Result.GdErr(ERR_INVALID_DECLARATION)],
+			[auto_free(CustomClass.new(42)), &"unknown_prop", Result.GdErr(ERR_INVALID_PARAMETER)],
 		],
 ):
 	assert_that(Result.safe_member(instance, member_name)).is_equal(expectation)
@@ -111,14 +130,14 @@ func test_safe_method_call(
 		expectation: Result,
 		_test_parameters := [
 			[auto_free(Node.new()), &"is_node_ready", [], Result.Ok(false)],
-			[auto_free(Node.new()), &"is_food_ready", [], Result.GdErr(ERR_INVALID_DECLARATION)],
-			[auto_free(Node.new()), &"can_process", [1, 2, 3], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
-			[null, &"is_node_ready", [], Result.GdErr(ERR_INVALID_PARAMETER)],
-			[Vector3.ONE, &"is_equal_approx", [Vector3.ONE], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(Node.new()), &"is_food_ready", [], Result.GdErr(ERR_INVALID_DATA)],
+			[auto_free(Node.new()), &"can_process", [1, 2, 3], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[null, &"is_node_ready", [], Result.GdErr(ERR_INVALID_DATA)],
+			[Vector3.ONE, &"is_equal_approx", [Vector3.ONE], Result.Ok(true)],
 			[auto_free(CustomClass.new(42)), &"mul_by", [2], Result.Ok(84)],
-			[auto_free(CustomClass.new(42)), &"mul_by", [], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
-			[auto_free(CustomClass.new(42)), &"mul_by", [2, 3], Result.GdErr(ERR_PARAMETER_RANGE_ERROR)],
-			[auto_free(CustomClass.new(42)), &"mul_by_two", [2], Result.GdErr(ERR_INVALID_DECLARATION)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [2, 3], Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(CustomClass.new(42)), &"mul_by_two", [2], Result.GdErr(ERR_INVALID_DATA)],
 		],
 ):
 	assert_that(Result.safe_method_call.bindv(method_args).call(instance, method_name)).is_equal(expectation)

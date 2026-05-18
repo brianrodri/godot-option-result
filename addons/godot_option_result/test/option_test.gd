@@ -2,6 +2,42 @@ class_name OptionTest
 extends GdUnitTestSuite
 
 
+func test_member(
+		instance: Variant,
+		member_name: StringName,
+		expectation: Option,
+		_test_parameters := [
+			[auto_free(Node.new()), &"process_mode", Option.Some(PROCESS_MODE_INHERIT)],
+			[auto_free(Node.new()), &"process_lols", Option.None],
+			[null, &"process_mode", Option.None],
+			[Vector3.ONE, &"x", Option.None],
+			[auto_free(CustomClass.new(42)), &"prop", Option.Some(42)],
+			[auto_free(CustomClass.new(42)), &"unknown_prop", Option.None],
+		],
+):
+	assert_that(Option.member(instance, member_name)).is_equal(expectation)
+
+
+func test_method_call(
+		instance: Variant,
+		method_name: StringName,
+		method_args: Array,
+		expectation: Option,
+		_test_parameters := [
+			[auto_free(Node.new()), &"is_node_ready", [], Option.Some(false)],
+			[auto_free(Node.new()), &"is_food_ready", [], Option.None],
+			[auto_free(Node.new()), &"can_process", [1, 2, 3], Option.None],
+			[null, &"is_node_ready", [], Option.None],
+			[Vector3.ONE, &"is_equal_approx", [Vector3.ONE], Option.Some(true)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [2], Option.Some(84)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [], Option.None],
+			[auto_free(CustomClass.new(42)), &"mul_by", [2, 3], Option.None],
+			[auto_free(CustomClass.new(42)), &"mul_by_two", [2], Option.None],
+		],
+):
+	assert_that(Option.method_call.bindv(method_args).call(instance, method_name)).is_equal(expectation)
+
+
 func test_to_string_with_simple_types(
 		input: Option,
 		expected: String,
@@ -342,3 +378,15 @@ func test_transpose_with_non_result_value():
 	var some_value_but_not_result := Option.Some(42)
 	var invalid_data_error := Result.GdErr(Error.ERR_INVALID_DATA)
 	assert_that(some_value_but_not_result.transpose()).is_equal(invalid_data_error)
+
+
+class CustomClass:
+	var prop: int
+
+
+	func _init(value: int) -> void:
+		prop = value
+
+
+	func mul_by(x: int) -> int:
+		return prop * x

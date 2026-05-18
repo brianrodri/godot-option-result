@@ -16,7 +16,7 @@ static func Err(e: Variant = null) -> Result:
 	return Result.new(false, e)
 
 
-## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise
+## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise some
 ## [code]Err(error_string(e))[/code].
 static func GdErr(e: Error) -> Result:
 	if e == Error.OK:
@@ -24,27 +24,30 @@ static func GdErr(e: Error) -> Result:
 	return Err(error_string(e))
 
 
+## Returns [code]Ok(f(...args))[/code] when [param f] can be invoked with [param args] succesfully, otherwise some
+## [method Result.GdErr].
+static func safe_call(f: Callable, ...args: Array) -> Result:
+	if not f.is_valid():
+		return GdErr(ERR_INVALID_DATA)
+	if f.get_argument_count() != args.size():
+		return GdErr(ERR_INVALID_PARAMETER)
+	return Ok(f.callv(args))
+
+
 ## [code]Ok(instance.member)[/code] when [param member_name] is a valid property on [param instance], otherwise some
-## [code]GdErr[/code].
+## [method Result.GdErr].
 static func safe_member(instance: Variant, member_name: StringName) -> Result:
 	if not is_instance_valid(instance):
-		return GdErr(ERR_INVALID_PARAMETER)
+		return GdErr(ERR_INVALID_DATA)
 	if member_name not in instance:
-		return GdErr(ERR_INVALID_DECLARATION)
+		return GdErr(ERR_INVALID_PARAMETER)
 	return Ok(instance.get(member_name))
 
 
-## [code]Ok(instance.method(...method_args))[/code] when [param method_name] is a valid method on [param instance],
-## otherwise some [code]GdErr[/code]. The call will be made with [param method_args] as arguments.
+## Returns [code]Ok(x.method(...method_args))[/code] when [param method_name] is a valid method on [param instance] that
+## can be invoked with [param method_args], otherwise some [method Result.GdErr].
 static func safe_method_call(instance: Variant, method_name: StringName, ...method_args: Array) -> Result:
-	if not is_instance_valid(instance):
-		return GdErr(ERR_INVALID_PARAMETER)
-	if not instance.has_method(method_name):
-		return GdErr(ERR_INVALID_DECLARATION)
-	var method := Callable(instance, method_name)
-	if len(method_args) != method.get_argument_count():
-		return GdErr(ERR_PARAMETER_RANGE_ERROR)
-	return Ok(method.callv(method_args))
+	return safe_call.bindv(method_args).call(Callable.create(instance, method_name))
 
 
 func _init(as_ok: bool, value: Variant) -> void:

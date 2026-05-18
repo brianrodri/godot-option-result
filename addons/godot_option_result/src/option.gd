@@ -21,6 +21,22 @@ static func not_null(x: Variant) -> Option:
 	return Option.None
 
 
+## [code]Some(instance.member)[/code] when [param member_name] is a valid property on [param instance], otherwise
+## [code]None[/code].
+static func member(instance: Variant, member_name: StringName) -> Option:
+	var result: Result = Result.safe_member(instance, member_name)
+	return result.ok()
+
+
+## Returns [code]Some(x.method(...method_args))[/code] when [param method_name] is a valid method on [param instance]
+## that can be invoked with [param method_args], otherwise [code]None[/code].
+static func method_call(instance: Variant, method_name: StringName, ...method_args: Array) -> Option:
+	if method_args.is_empty():
+		return Result.safe_method_call(instance, method_name).ok()
+	var result: Result = Result.safe_method_call.bindv(method_args).call(instance, method_name)
+	return result.ok()
+
+
 func _init(as_some: bool = false, x: Variant = null) -> void:
 	self._is_some = as_some
 	self._value = x if self._is_some else null
