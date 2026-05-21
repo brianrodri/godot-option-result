@@ -225,7 +225,7 @@ func test_unwrap_returns_value_when_ok():
 func test_unwrap_fails_with_default_message_when_err() -> void:
 	await (
 			assert_error(func(): Result.Err(42).unwrap())
-			.is_runtime_error("Assertion failed: [method Result.unwrap] called on Err")
+			.is_runtime_error("Assertion failed: " + Result.ERR_ILLEGAL_UNWRAP)
 	)
 
 
@@ -236,7 +236,7 @@ func test_unwrap_err_returns_error_when_err():
 func test_unwrap_err_fails_with_default_message_when_ok() -> void:
 	await (
 			assert_error(func(): Result.Ok(42).unwrap_err())
-			.is_runtime_error("Assertion failed: [method Result.unwrap_err] called on Ok")
+			.is_runtime_error("Assertion failed: " + Result.ERR_ILLEGAL_UNWRAP_ERR)
 	)
 
 
