@@ -126,7 +126,7 @@ func test_pipe(
 ):
 	var cb := mock(Callbacks) as Callbacks
 	var returned = input.pipe(cb.transform)
-	verify(cb, times_expected).transform(any())
+	verify(cb, times_expected).transform(2)
 	assert_that(returned).is_equal(input)
 
 

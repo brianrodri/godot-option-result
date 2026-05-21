@@ -201,7 +201,7 @@ func test_pipe(
 	var cb := mock(Callbacks) as Callbacks
 	var returned = input.pipe(cb.transform)
 	assert_that(returned).is_equal(input)
-	verify(cb, times_called).transform(any())
+	verify(cb, times_called).transform(input._value)
 
 
 func test_pipe_err(
@@ -215,7 +215,7 @@ func test_pipe_err(
 	var cb := mock(Callbacks) as Callbacks
 	var returned = input.pipe_err(cb.transform)
 	assert_that(returned).is_equal(input)
-	verify(cb, times_called).transform(any())
+	verify(cb, times_called).transform(input._value)
 
 
 func test_unwrap_returns_value_when_ok():
@@ -241,7 +241,7 @@ func test_unwrap_err_fails_with_default_message_when_ok() -> void:
 
 
 func test_unwrap_or(
-		result: Result,
+		input: Result,
 		default: Variant,
 		expected: Variant,
 		_test_parameters := [
@@ -249,11 +249,11 @@ func test_unwrap_or(
 			[Result.Err("error"), 0, 0],
 		],
 ):
-	assert_that(result.unwrap_or(default)).is_equal(expected)
+	assert_that(input.unwrap_or(default)).is_equal(expected)
 
 
 func test_unwrap_or_call(
-		result: Result,
+		input: Result,
 		expected: Variant,
 		times_called: int,
 		_test_parameters := [
@@ -263,8 +263,8 @@ func test_unwrap_or_call(
 ):
 	var cb := mock(Callbacks) as Callbacks
 	do_return(expected).on(cb).transform(any())
-	assert_that(result.unwrap_or_call(cb.transform)).is_equal(expected)
-	verify(cb, times_called).transform(any())
+	assert_that(input.unwrap_or_call(cb.transform)).is_equal(expected)
+	verify(cb, times_called).transform(input._value)
 
 
 func test_map(
@@ -313,7 +313,7 @@ func test_map_or_call(
 	var cb := mock(Callbacks) as Callbacks
 	do_return(expected).on(cb).transform(any())
 	assert_that(input.map_or_call(cb.transform, len)).is_equal(expected)
-	verify(cb, times_called).transform(any())
+	verify(cb, times_called).transform(input._value)
 
 
 func test_and_then(
@@ -343,7 +343,7 @@ func test_and_then_call(
 	var cb := mock(Callbacks) as Callbacks
 	do_return(expected).on(cb).transform(any())
 	assert_that(input.and_then_call(cb.transform)).is_equal(expected)
-	verify(cb, times_called).transform(any())
+	verify(cb, times_called).transform(input._value)
 
 
 func test_or_else(
@@ -374,7 +374,7 @@ func test_or_else_call(
 	var cb := mock(Callbacks) as Callbacks
 	do_return(default).on(cb).transform(any())
 	assert_that(input.or_else_call(cb.transform)).is_equal(expected)
-	verify(cb, times_called).transform(any())
+	verify(cb, times_called).transform(input._value)
 
 
 func test_ok(
@@ -506,7 +506,7 @@ func test_map_member_or_call(
 	var cb := mock(Callbacks) as Callbacks
 	do_return(default).on(cb).transform(any())
 	assert_that(input.map_member_or_call(cb.transform, member_name)).is_equal(expected)
-	verify(cb, times_called).transform(any())
+	verify(cb, times_called).transform(input._value)
 
 
 func test_map_method_call_or_call(
@@ -526,7 +526,7 @@ func test_map_method_call_or_call(
 	var cb := mock(Callbacks) as Callbacks
 	do_return(default).on(cb).transform(any())
 	assert_that(input.map_method_call_or_call.bindv(arguments).call(cb.transform, method_name)).is_equal(expected)
-	verify(cb, times_called).transform(any())
+	verify(cb, times_called).transform(input._value)
 
 
 func test_and_then_member(
