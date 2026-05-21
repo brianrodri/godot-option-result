@@ -126,8 +126,7 @@ func is_err() -> bool:
 func is_ok_and(predicate: Callable) -> bool:
 	if _is_ok:
 		assert(predicate.is_valid())
-		var passed: bool = predicate.call(_value)
-		return passed
+		return bool(predicate.call(_value))
 	return false
 
 
@@ -142,8 +141,7 @@ func is_err_and(predicate: Callable) -> bool:
 	if _is_ok:
 		return false
 	assert(predicate.is_valid())
-	var passed: bool = predicate.call(_value)
-	return passed
+	return bool(predicate.call(_value))
 
 
 ## Calls [param callable] with the wrapped value when [member self] is [code]Ok[/code], then returns [member self].
