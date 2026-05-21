@@ -176,10 +176,12 @@ func pipe_err(callable: Callable) -> Result:
 ##
 ## [codeblock]
 ## self is Ok(x)  -> x
-## self is Err(e) -> asserts with [constant ERR_ILLEGAL_UNWRAP]
+## self is Err(e) -> asserts with [constant ERR_ILLEGAL_UNWRAP] and returns null
 ## [/codeblock]
 func unwrap() -> Variant:
-	assert(_is_ok, ERR_ILLEGAL_UNWRAP)
+	if not _is_ok:
+		assert(false, ERR_ILLEGAL_UNWRAP)
+		return null
 	return _value
 
 

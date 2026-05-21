@@ -113,10 +113,12 @@ func pipe(callable: Callable) -> Option:
 ##
 ## [codeblock]
 ## self is Some(x) -> x
-## self is None    -> asserts with [constant ERR_ILLEGAL_UNWRAP]
+## self is None    -> asserts with [constant ERR_ILLEGAL_UNWRAP] and returns null
 ## [/codeblock]
 func unwrap() -> Variant:
-	assert(_is_some, ERR_ILLEGAL_UNWRAP)
+	if not _is_some:
+		assert(false, ERR_ILLEGAL_UNWRAP)
+		return null
 	return _value
 
 
