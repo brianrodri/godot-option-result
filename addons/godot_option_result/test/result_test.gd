@@ -461,34 +461,6 @@ func test_map_method_call(
 	assert_that(input.map_method_call.bindv(arguments).call(method_name)).is_equal(expected)
 
 
-func test_map_err_member(
-		input: Result,
-		member_name: StringName,
-		expected: Result,
-		_test_parameters := [
-			[Result.Ok(42), &"prop", Result.Ok(42)],
-			[Result.Err(auto_free(CustomClass.new(7))), &"prop", Result.Ok(7)],
-			[Result.Err(auto_free(CustomClass.new(7))), &"unknown_prop", Result.Err(Result.ERR_UNSAFE_MEMBER_ACCESS)],
-		],
-):
-	assert_that(input.map_err_member(member_name)).is_equal(expected)
-
-
-func test_map_err_method_call(
-		input: Result,
-		method_name: StringName,
-		arguments: Array,
-		expected: Result,
-		_test_parameters := [
-			[Result.Ok(42), &"mul_by", [2], Result.Ok(42)],
-			[Result.Err(auto_free(CustomClass.new(7))), &"mul_by", [2], Result.Ok(14)],
-			[Result.Err(auto_free(CustomClass.new(7))), &"mul_by", [], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
-			[Result.Err(auto_free(CustomClass.new(7))), &"unknown_method", [], Result.Err(Result.ERR_UNSAFE_METHOD_ACCESS)],
-		],
-):
-	assert_that(input.map_err_method_call.bindv(arguments).call(method_name)).is_equal(expected)
-
-
 func test_map_member_or(
 		input: Result,
 		default: Variant,

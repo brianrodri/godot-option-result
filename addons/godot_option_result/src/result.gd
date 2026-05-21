@@ -192,7 +192,9 @@ func unwrap() -> Variant:
 ## self is Err(e) -> e
 ## [/codeblock]
 func unwrap_err() -> Variant:
-	assert(not _is_ok, ERR_ILLEGAL_UNWRAP_ERR)
+	if _is_ok:
+		assert(false, ERR_ILLEGAL_UNWRAP_ERR)
+		return null
 	return _value
 
 
@@ -272,32 +274,6 @@ func map_err(callable: Callable) -> Result:
 		return self
 	assert(callable.is_valid())
 	return Err(callable.call(_value))
-
-
-## Recovers [code]Err(e)[/code] by reading [code]e.member[/code], leaves [code]Ok[/code] unchanged.
-##
-## [codeblock]
-## self is Ok(x)                      -> self
-## self is Err(e) when valid access   -> Ok(e.member)
-## self is Err(e) when invalid access -> Err(ERR_UNSAFE_MEMBER_ACCESS)
-## [/codeblock]
-func map_err_member(member_name: StringName) -> Result:
-	if _is_ok:
-		return self
-	return safe_member(_value, member_name)
-
-
-## Recovers [code]Err(e)[/code] by calling [code]e.method(...arguments)[/code], leaves [code]Ok[/code] unchanged.
-##
-## [codeblock]
-## self is Ok(x)                    -> self
-## self is Err(e) when valid call   -> Ok(e.method(...arguments))
-## self is Err(e) when invalid call -> Err(ERR_UNSAFE_METHOD_ACCESS or ERR_UNSAFE_ARGUMENTS)
-## [/codeblock]
-func map_err_method_call(method_name: StringName, ...arguments: Array) -> Result:
-	if _is_ok:
-		return self
-	return safe_method_call.bindv(arguments).call(_value, method_name)
 
 
 ## Returns [code]callable.call(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [param default].
