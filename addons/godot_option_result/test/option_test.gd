@@ -2,7 +2,7 @@ class_name OptionTest
 extends GdUnitTestSuite
 
 
-func test_member(
+func test_from_member(
 		instance: Variant,
 		member_name: StringName,
 		expectation: Option,
@@ -15,13 +15,13 @@ func test_member(
 			[auto_free(CustomClass.new(42)), &"unknown_prop", Option.None],
 		],
 ):
-	assert_that(Option.member(instance, member_name)).is_equal(expectation)
+	assert_that(Option.from_member(instance, member_name)).is_equal(expectation)
 
 
-func test_method_call(
+func test_from_method_call(
 		instance: Variant,
 		method_name: StringName,
-		method_args: Array,
+		arguments: Array,
 		expectation: Option,
 		_test_parameters := [
 			[auto_free(Node.new()), &"is_node_ready", [], Option.Some(false)],
@@ -35,7 +35,7 @@ func test_method_call(
 			[auto_free(CustomClass.new(42)), &"mul_by_two", [2], Option.None],
 		],
 ):
-	assert_that(Option.method_call.bindv(method_args).call(instance, method_name)).is_equal(expectation)
+	assert_that(Option.from_method_call.bindv(arguments).call(instance, method_name)).is_equal(expectation)
 
 
 func test_to_string_with_simple_types(
@@ -118,15 +118,15 @@ func test_iterate_some():
 
 func test_pipe(
 		input: Option,
-		call_expected: bool,
+		times_expected: int,
 		_test_parameters := [
-			[Option.Some(2), true],
-			[Option.None, false],
+			[Option.Some(2), 1],
+			[Option.None, 0],
 		],
 ):
-	var state := { "called": false }
-	var returned = input.pipe(func(_x): state.called = true)
-	assert_bool(state.called).is_equal(call_expected)
+	var cb := mock(Callbacks) as Callbacks
+	var returned = input.pipe(cb.transform)
+	verify(cb, times_expected).transform(2 if times_expected > 0 else any())
 	assert_that(returned).is_equal(input)
 
 
@@ -135,17 +135,7 @@ func test_unwrap_returns_value_when_some():
 
 
 func test_unwrap_fails_with_default_message_when_none() -> void:
-	await assert_error(Option.None.unwrap).is_runtime_error("Assertion failed: [method Option.unwrap] called on None")
-
-
-func test_unwrap_fails_with_custom_message_when_none() -> void:
-	await assert_error(Option.None.unwrap.bind("expected a value")).is_runtime_error("Assertion failed: expected a value")
-
-
-func test_unwrap_substitutes_self_into_custom_message_when_none() -> void:
-	await (
-		assert_error(Option.None.unwrap.bind("{0} must be some")).is_runtime_error("Assertion failed: None must be some")
-	)
+	await assert_error(Option.None.unwrap).is_runtime_error("Assertion failed: %s" % Option.ERR_ILLEGAL_UNWRAP)
 
 
 func test_unwrap_or(
@@ -164,18 +154,16 @@ func test_unwrap_or_call(
 		input: Option,
 		default: Variant,
 		expected: Variant,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Option.Some(4), 42, 4, false],
-			[Option.None, 42, 42, true],
+			[Option.Some(4), 42, 4, 0],
+			[Option.None, 42, 42, 1],
 		],
 ):
-	var state := { "called": false }
-	var get_default := func():
-		state.called = true
-		return default
-	assert_that(input.unwrap_or_call(get_default)).is_equal(expected)
-	assert_bool(state.called).is_equal(call_expected)
+	var cb := mock(Callbacks) as Callbacks
+	do_return(default).on(cb).produce()
+	assert_that(input.unwrap_or_call(cb.produce)).is_equal(expected)
+	verify(cb, times_called).produce()
 
 
 func test_map(
@@ -204,18 +192,16 @@ func test_map_or_call(
 		input: Option,
 		default: Variant,
 		expected: Variant,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Option.Some("foo"), 42, 3, false],
-			[Option.None, 42, 42, true],
+			[Option.Some("foo"), 42, 3, 0],
+			[Option.None, 42, 42, 1],
 		],
 ):
-	var state := { "called": false }
-	var get_default := func():
-		state.called = true
-		return default
-	assert_that(input.map_or_call(get_default, len)).is_equal(expected)
-	assert_bool(state.called).is_equal(call_expected)
+	var cb := mock(Callbacks) as Callbacks
+	do_return(default).on(cb).produce()
+	assert_that(input.map_or_call(cb.produce, len)).is_equal(expected)
+	verify(cb, times_called).produce()
 
 
 func test_keep_when(
@@ -266,7 +252,8 @@ func test_and_then_call(
 		],
 ):
 	(
-		assert_that(input.and_then_call(func(x): return Option.Some(x * x) if x <= 1000 else Option.None)).is_equal(expected)
+			assert_that(input.and_then_call(func(x): return Option.Some(x * x) if x <= 1000 else Option.None))
+			.is_equal(expected)
 	)
 
 
@@ -288,19 +275,17 @@ func test_or_else_call(
 		input: Option,
 		default: Option,
 		expected: Option,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Option.Some("barbarians"), Option.Some("vikings"), Option.Some("barbarians"), false],
-			[Option.None, Option.Some("vikings"), Option.Some("vikings"), true],
-			[Option.None, Option.None, Option.None, true],
+			[Option.Some("barbarians"), Option.Some("vikings"), Option.Some("barbarians"), 0],
+			[Option.None, Option.Some("vikings"), Option.Some("vikings"), 1],
+			[Option.None, Option.None, Option.None, 1],
 		],
 ):
-	var state := { "called": false }
-	var f := func():
-		state.called = true
-		return default
-	assert_that(input.or_else_call(f)).is_equal(expected)
-	assert_bool(state.called).is_equal(call_expected)
+	var cb := mock(Callbacks) as Callbacks
+	do_return(default).on(cb).produce()
+	assert_that(input.or_else_call(cb.produce)).is_equal(expected)
+	verify(cb, times_called).produce()
 
 
 func test_xor_with(
@@ -346,18 +331,16 @@ func test_ok_or_call(
 		input: Option,
 		default: Variant,
 		expected: Result,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Option.Some("foo"), 42, Result.Ok("foo"), false],
-			[Option.None, 42, Result.Err(42), true],
+			[Option.Some("foo"), 42, Result.Ok("foo"), 0],
+			[Option.None, 42, Result.Err(42), 1],
 		],
 ):
-	var state := { "called": false }
-	var get_default := func():
-		state.called = true
-		return default
-	assert_that(input.ok_or_call(get_default)).is_equal(expected)
-	assert_bool(state.called).is_equal(call_expected)
+	var cb := mock(Callbacks) as Callbacks
+	do_return(default).on(cb).produce()
+	assert_that(input.ok_or_call(cb.produce)).is_equal(expected)
+	verify(cb, times_called).produce()
 
 
 func test_transpose(
@@ -375,18 +358,271 @@ func test_transpose(
 
 
 func test_transpose_with_non_result_value():
-	var some_value_but_not_result := Option.Some(42)
-	var invalid_data_error := Result.GdErr(Error.ERR_INVALID_DATA)
-	assert_that(some_value_but_not_result.transpose()).is_equal(invalid_data_error)
+	assert_that(Option.Some(42).transpose()).is_equal(Result.Err(Option.ERR_ILLEGAL_TRANSPOSE))
+
+
+func test_not_null(
+		x: Variant,
+		expected: Option,
+		_test_parameters := [
+			[null, Option.None],
+			[42, Option.Some(42)],
+			["", Option.Some("")],
+			[false, Option.Some(false)],
+			[0, Option.Some(0)],
+			[[], Option.Some([])],
+		],
+):
+	assert_that(Option.not_null(x)).is_equal(expected)
+
+
+func test_map_member(
+		input: Option,
+		member_name: StringName,
+		expected: Option,
+		_test_parameters := [
+			[Option.None, &"prop", Option.None],
+			[Option.Some(auto_free(CustomClass.new(42))), &"prop", Option.Some(42)],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_prop", Option.None],
+			[Option.Some(auto_free(Node.new())), &"process_mode", Option.Some(PROCESS_MODE_INHERIT)],
+		],
+):
+	assert_that(input.map_member(member_name)).is_equal(expected)
+
+
+func test_map_method_call(
+		input: Option,
+		method_name: StringName,
+		arguments: Array,
+		expected: Option,
+		_test_parameters := [
+			[Option.None, &"mul_by", [2], Option.None],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [2], Option.Some(84)],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [], Option.None],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_method", [], Option.None],
+		],
+):
+	assert_that(input.map_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_map_member_or(
+		input: Option,
+		default: Variant,
+		member_name: StringName,
+		expected: Variant,
+		_test_parameters := [
+			[Option.None, "default", &"prop", "default"],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"prop", 42],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"unknown_prop", -1],
+		],
+):
+	assert_that(input.map_member_or(default, member_name)).is_equal(expected)
+
+
+func test_map_method_call_or(
+		input: Option,
+		default: Variant,
+		method_name: StringName,
+		arguments: Array,
+		expected: Variant,
+		_test_parameters := [
+			[Option.None, -1, &"mul_by", [2], -1],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"mul_by", [2], 84],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"mul_by", [], -1],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"unknown_method", [], -1],
+		],
+):
+	assert_that(input.map_method_call_or.bindv(arguments).call(default, method_name)).is_equal(expected)
+
+
+func test_map_member_or_call(
+		input: Option,
+		default: Variant,
+		member_name: StringName,
+		expected: Variant,
+		times_called: int,
+		_test_parameters := [
+			[Option.None, -1, &"prop", -1, 1],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"prop", 42, 0],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"unknown_prop", -1, 1],
+		],
+):
+	var cb := mock(Callbacks) as Callbacks
+	do_return(default).on(cb).produce()
+	assert_that(input.map_member_or_call(cb.produce, member_name)).is_equal(expected)
+	verify(cb, times_called).produce()
+
+
+func test_map_method_call_or_call(
+		input: Option,
+		default: Variant,
+		method_name: StringName,
+		arguments: Array,
+		expected: Variant,
+		times_called: int,
+		_test_parameters := [
+			[Option.None, -1, &"mul_by", [2], -1, 1],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"mul_by", [2], 84, 0],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"mul_by", [], -1, 1],
+			[Option.Some(auto_free(CustomClass.new(42))), -1, &"unknown_method", [], -1, 1],
+		],
+):
+	var cb := mock(Callbacks) as Callbacks
+	do_return(default).on(cb).produce()
+	assert_that(input.map_method_call_or_call.bindv(arguments).call(cb.produce, method_name)).is_equal(expected)
+	verify(cb, times_called).produce()
+
+
+func test_keep_when_member(
+		input: Option,
+		member_name: StringName,
+		keep: bool,
+		_test_parameters := [
+			[Option.None, &"prop", false],
+			[Option.Some(auto_free(CustomClass.new(0))), &"prop", false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"prop", true],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_prop", false],
+		],
+):
+	var expected: Option = input if keep else Option.None
+	assert_that(input.keep_when_member(member_name)).is_equal(expected)
+
+
+func test_keep_when_method_call(
+		input: Option,
+		method_name: StringName,
+		arguments: Array,
+		keep: bool,
+		_test_parameters := [
+			[Option.None, &"mul_by", [2], false],
+			[Option.Some(auto_free(CustomClass.new(0))), &"mul_by", [2], false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [2], true],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [], false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_method", [], false],
+		],
+):
+	var expected: Option = input if keep else Option.None
+	assert_that(input.keep_when_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_drop_when_member(
+		input: Option,
+		member_name: StringName,
+		keep: bool,
+		_test_parameters := [
+			[Option.None, &"prop", false],
+			[Option.Some(auto_free(CustomClass.new(0))), &"prop", true],
+			[Option.Some(auto_free(CustomClass.new(42))), &"prop", false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_prop", true],
+		],
+):
+	var expected: Option = input if keep else Option.None
+	assert_that(input.drop_when_member(member_name)).is_equal(expected)
+
+
+func test_drop_when_method_call(
+		input: Option,
+		method_name: StringName,
+		arguments: Array,
+		keep: bool,
+		_test_parameters := [
+			[Option.None, &"mul_by", [2], false],
+			[Option.Some(auto_free(CustomClass.new(0))), &"mul_by", [2], true],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [2], false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [], true],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_method", [], true],
+		],
+):
+	var expected: Option = input if keep else Option.None
+	assert_that(input.drop_when_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_and_then_member(
+		input: Option,
+		member_name: StringName,
+		expected: Option,
+		_test_parameters := [
+			[Option.None, &"inner_opt", Option.None],
+			[Option.Some(auto_free(CustomClass.new(0, Option.Some(42)))), &"inner_opt", Option.Some(42)],
+			[Option.Some(auto_free(CustomClass.new(0, Option.None))), &"inner_opt", Option.None],
+			[Option.Some(auto_free(CustomClass.new(0))), &"unknown_prop", Option.None],
+		],
+):
+	assert_that(input.and_then_member(member_name)).is_equal(expected)
+
+
+func test_and_then_method_call(
+		input: Option,
+		method_name: StringName,
+		arguments: Array,
+		expected: Option,
+		_test_parameters := [
+			[Option.None, &"get_opt", [Option.Some(42)], Option.None],
+			[Option.Some(auto_free(CustomClass.new(0))), &"get_opt", [Option.Some(42)], Option.Some(42)],
+			[Option.Some(auto_free(CustomClass.new(0))), &"get_opt", [Option.None], Option.None],
+			[Option.Some(auto_free(CustomClass.new(0))), &"unknown_method", [], Option.None],
+		],
+):
+	assert_that(input.and_then_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_ok_or_else(
+		input: Option,
+		other: Result,
+		expected: Result,
+		_test_parameters := [
+			[Option.Some("foo"), Result.Err("ignored"), Result.Ok("foo")],
+			[Option.None, Result.Err("uh-oh"), Result.Err("uh-oh")],
+			[Option.None, Result.Ok(42), Result.Ok(42)],
+		],
+):
+	assert_that(input.ok_or_else(other)).is_equal(expected)
+
+
+func test_ok_or_else_call(
+		input: Option,
+		other: Result,
+		expected: Result,
+		times_called: int,
+		_test_parameters := [
+			[Option.Some("foo"), Result.Err(42), Result.Ok("foo"), 0],
+			[Option.None, Result.Err(42), Result.Err(42), 1],
+			[Option.None, Result.Ok(7), Result.Ok(7), 1],
+		],
+):
+	var cb := mock(Callbacks) as Callbacks
+	do_return(other).on(cb).produce()
+	assert_that(input.ok_or_else_call(cb.produce)).is_equal(expected)
+	verify(cb, times_called).produce()
+
+
+func test_flatten_with_non_option_value():
+	var input := Option.Some(42)
+	assert_that(input.flatten()).is_equal(input)
 
 
 class CustomClass:
 	var prop: int
+	var inner_opt: Option
 
 
-	func _init(value: int) -> void:
+	func _init(value: int, opt: Option = null) -> void:
 		prop = value
+		inner_opt = opt if opt != null else Option.None
 
 
 	func mul_by(x: int) -> int:
 		return prop * x
+
+
+	func get_opt(opt: Option) -> Option:
+		return opt
+
+
+class Callbacks:
+	func produce() -> Variant:
+		return null
+
+
+	func transform(_x: Variant) -> Variant:
+		return null

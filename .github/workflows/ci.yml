@@ -27,7 +27,7 @@ jobs:
             chmod +x "$RUNNER_TEMP/bin/gdscript-formatter"
             echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
         env:
-            GDFMT_VERSION: "0.19.0"
+            GDFMT_VERSION: "0.20.0"
       - name: Run Format Checks
         run: gdscript-formatter --check --reorder-code $(find addons/godot_option_result -name '*.gd')
       - name: Install GDScript Toolkit

@@ -94,14 +94,14 @@ func test_safe_call(
 		expectation: Result,
 		_test_parameters := [
 			[auto_free(Node.new()).is_node_ready, [], Result.Ok(false)],
-			[Callable.create(auto_free(Node.new()), &"is_food_ready"), [], Result.GdErr(ERR_INVALID_DATA)],
-			[auto_free(Node.new()).can_process, [1, 2, 3], Result.GdErr(ERR_INVALID_PARAMETER)],
-			[Callable.create(null, &"is_node_ready"), [], Result.GdErr(ERR_INVALID_DATA)],
+			[Callable.create(auto_free(Node.new()), &"is_food_ready"), [], Result.Err(Result.ERR_UNSAFE_CALLABLE)],
+			[auto_free(Node.new()).can_process, [1, 2, 3], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
+			[Callable.create(null, &"is_node_ready"), [], Result.Err(Result.ERR_UNSAFE_CALLABLE)],
 			[Vector3.ONE.is_equal_approx, [Vector3.ONE], Result.Ok(true)],
 			[auto_free(CustomClass.new(42)).mul_by, [2], Result.Ok(84)],
-			[auto_free(CustomClass.new(42)).mul_by, [], Result.GdErr(ERR_INVALID_PARAMETER)],
-			[auto_free(CustomClass.new(42)).mul_by, [2, 3], Result.GdErr(ERR_INVALID_PARAMETER)],
-			[Callable.create(auto_free(CustomClass.new(42)), &"mul_by_two"), [2], Result.GdErr(ERR_INVALID_DATA)],
+			[auto_free(CustomClass.new(42)).mul_by, [], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
+			[auto_free(CustomClass.new(42)).mul_by, [2, 3], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
+			[Callable.create(auto_free(CustomClass.new(42)), &"mul_by_two"), [2], Result.Err(Result.ERR_UNSAFE_CALLABLE)],
 		],
 ):
 	assert_that(Result.safe_call.bindv(args).call(f)).is_equal(expectation)
@@ -113,11 +113,11 @@ func test_safe_member(
 		expectation: Result,
 		_test_parameters := [
 			[auto_free(Node.new()), &"process_mode", Result.Ok(PROCESS_MODE_INHERIT)],
-			[auto_free(Node.new()), &"process_lols", Result.GdErr(ERR_INVALID_PARAMETER)],
-			[null, &"process_mode", Result.GdErr(ERR_INVALID_DATA)],
-			[Vector3.ONE, &"x", Result.GdErr(ERR_INVALID_DATA)],
+			[auto_free(Node.new()), &"process_lols", Result.Err(Result.ERR_UNSAFE_MEMBER_ACCESS)],
+			[null, &"process_mode", Result.Err(Result.ERR_UNSAFE_MEMBER_ACCESS)],
+			[Vector3.ONE, &"x", Result.Err(Result.ERR_UNSAFE_MEMBER_ACCESS)],
 			[auto_free(CustomClass.new(42)), &"prop", Result.Ok(42)],
-			[auto_free(CustomClass.new(42)), &"unknown_prop", Result.GdErr(ERR_INVALID_PARAMETER)],
+			[auto_free(CustomClass.new(42)), &"unknown_prop", Result.Err(Result.ERR_UNSAFE_MEMBER_ACCESS)],
 		],
 ):
 	assert_that(Result.safe_member(instance, member_name)).is_equal(expectation)
@@ -126,21 +126,21 @@ func test_safe_member(
 func test_safe_method_call(
 		instance: Variant,
 		method_name: StringName,
-		method_args: Array,
+		arguments: Array,
 		expectation: Result,
 		_test_parameters := [
 			[auto_free(Node.new()), &"is_node_ready", [], Result.Ok(false)],
-			[auto_free(Node.new()), &"is_food_ready", [], Result.GdErr(ERR_INVALID_DATA)],
-			[auto_free(Node.new()), &"can_process", [1, 2, 3], Result.GdErr(ERR_INVALID_PARAMETER)],
-			[null, &"is_node_ready", [], Result.GdErr(ERR_INVALID_DATA)],
+			[auto_free(Node.new()), &"is_food_ready", [], Result.Err(Result.ERR_UNSAFE_METHOD_ACCESS)],
+			[auto_free(Node.new()), &"can_process", [1, 2, 3], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
+			[null, &"is_node_ready", [], Result.Err(Result.ERR_UNSAFE_METHOD_ACCESS)],
 			[Vector3.ONE, &"is_equal_approx", [Vector3.ONE], Result.Ok(true)],
 			[auto_free(CustomClass.new(42)), &"mul_by", [2], Result.Ok(84)],
-			[auto_free(CustomClass.new(42)), &"mul_by", [], Result.GdErr(ERR_INVALID_PARAMETER)],
-			[auto_free(CustomClass.new(42)), &"mul_by", [2, 3], Result.GdErr(ERR_INVALID_PARAMETER)],
-			[auto_free(CustomClass.new(42)), &"mul_by_two", [2], Result.GdErr(ERR_INVALID_DATA)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
+			[auto_free(CustomClass.new(42)), &"mul_by", [2, 3], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
+			[auto_free(CustomClass.new(42)), &"mul_by_two", [2], Result.Err(Result.ERR_UNSAFE_METHOD_ACCESS)],
 		],
 ):
-	assert_that(Result.safe_method_call.bindv(method_args).call(instance, method_name)).is_equal(expectation)
+	assert_that(Result.safe_method_call.bindv(arguments).call(instance, method_name)).is_equal(expectation)
 
 
 func test_is_ok(
@@ -192,30 +192,30 @@ func test_is_err_and(
 
 func test_pipe(
 		input: Result,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Result.Ok(2), true],
-			[Result.Err("e"), false],
+			[Result.Ok(2), 1],
+			[Result.Err("e"), 0],
 		],
 ):
-	var state := { "called": false }
-	var returned = input.pipe(func(_x): state.called = true)
+	var cb := mock(Callbacks) as Callbacks
+	var returned = input.pipe(cb.transform)
 	assert_that(returned).is_equal(input)
-	assert_bool(state.called).is_equal(call_expected)
+	verify(cb, times_called).transform(input._value if times_called > 0 else any())
 
 
 func test_pipe_err(
 		input: Result,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Result.Ok(2), false],
-			[Result.Err("e"), true],
+			[Result.Ok(2), 0],
+			[Result.Err("e"), 1],
 		],
 ):
-	var state := { "called": false }
-	var returned = input.pipe_err(func(_x): state.called = true)
+	var cb := mock(Callbacks) as Callbacks
+	var returned = input.pipe_err(cb.transform)
 	assert_that(returned).is_equal(input)
-	assert_that(state.called).is_equal(call_expected)
+	verify(cb, times_called).transform(input._value if times_called > 0 else any())
 
 
 func test_unwrap_returns_value_when_ok():
@@ -224,22 +224,8 @@ func test_unwrap_returns_value_when_ok():
 
 func test_unwrap_fails_with_default_message_when_err() -> void:
 	await (
-		assert_error(func(): Result.Err(42).unwrap()) \
-				.is_runtime_error("Assertion failed: [method Result.unwrap] called on Err(42)")
-	)
-
-
-func test_unwrap_fails_with_custom_message_when_err() -> void:
-	await (
-		assert_error(func(): Result.Err("boom").unwrap("expected a value")) \
-				.is_runtime_error("Assertion failed: expected a value")
-	)
-
-
-func test_unwrap_substitutes_self_into_custom_message_when_err() -> void:
-	await (
-		assert_error(func(): Result.Err("boom").unwrap("got {0}, wanted Ok")) \
-				.is_runtime_error('Assertion failed: got Err("boom"), wanted Ok')
+			assert_error(func(): Result.Err(42).unwrap())
+			.is_runtime_error("Assertion failed: " + Result.ERR_ILLEGAL_UNWRAP)
 	)
 
 
@@ -249,27 +235,13 @@ func test_unwrap_err_returns_error_when_err():
 
 func test_unwrap_err_fails_with_default_message_when_ok() -> void:
 	await (
-		assert_error(func(): Result.Ok(42).unwrap_err()) \
-				.is_runtime_error("Assertion failed: [method Result.unwrap_err] called on Ok(42)")
-	)
-
-
-func test_unwrap_err_fails_with_custom_message_when_ok() -> void:
-	await (
-		assert_error(func(): Result.Ok(42).unwrap_err("expected an error")) \
-				.is_runtime_error("Assertion failed: expected an error")
-	)
-
-
-func test_unwrap_err_substitutes_self_into_custom_message_when_ok() -> void:
-	await (
-		assert_error(func(): Result.Ok(42).unwrap_err("got {0}, wanted Err")) \
-				.is_runtime_error("Assertion failed: got Ok(42), wanted Err")
+			assert_error(func(): Result.Ok(42).unwrap_err())
+			.is_runtime_error("Assertion failed: " + Result.ERR_ILLEGAL_UNWRAP_ERR)
 	)
 
 
 func test_unwrap_or(
-		result: Result,
+		input: Result,
 		default: Variant,
 		expected: Variant,
 		_test_parameters := [
@@ -277,24 +249,22 @@ func test_unwrap_or(
 			[Result.Err("error"), 0, 0],
 		],
 ):
-	assert_that(result.unwrap_or(default)).is_equal(expected)
+	assert_that(input.unwrap_or(default)).is_equal(expected)
 
 
 func test_unwrap_or_call(
-		result: Result,
+		input: Result,
 		expected: Variant,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Result.Ok(2), 2, false],
-			[Result.Err("foo"), 3, true],
+			[Result.Ok(2), 2, 0],
+			[Result.Err("foo"), 3, 1],
 		],
 ):
-	var state := { "called": false }
-	var get_length := func(e):
-		state.called = true
-		return len(e)
-	assert_that(result.unwrap_or_call(get_length)).is_equal(expected)
-	assert_bool(state.called).is_equal(call_expected)
+	var cb := mock(Callbacks) as Callbacks
+	do_return(expected).on(cb).transform(any())
+	assert_that(input.unwrap_or_call(cb.transform)).is_equal(expected)
+	verify(cb, times_called).transform(input._value if times_called > 0 else any())
 
 
 func test_map(
@@ -334,18 +304,16 @@ func test_map_or(
 func test_map_or_call(
 		input: Result,
 		expected: Variant,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Result.Ok("foo"), 3, false],
-			[Result.Err(21), 42, true],
+			[Result.Ok("foo"), 3, 0],
+			[Result.Err(21), 42, 1],
 		],
 ):
-	var state := { "called": false }
-	var get_times_two := func(x):
-		state.called = true
-		return x * 2
-	assert_that(input.map_or_call(get_times_two, len)).is_equal(expected)
-	assert_bool(state.called).is_equal(call_expected)
+	var cb := mock(Callbacks) as Callbacks
+	do_return(expected).on(cb).transform(any())
+	assert_that(input.map_or_call(cb.transform, len)).is_equal(expected)
+	verify(cb, times_called).transform(input._value if times_called > 0 else any())
 
 
 func test_and_then(
@@ -365,19 +333,17 @@ func test_and_then(
 func test_and_then_call(
 		input: Result,
 		expected: Result,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Result.Ok(2), Result.Ok(4), true],
-			[Result.Ok(1_000_000), Result.Err("overflowed"), true],
-			[Result.Err("not a number"), Result.Err("not a number"), false],
+			[Result.Ok(2), Result.Ok(4), 1],
+			[Result.Ok(1_000_000), Result.Err("overflowed"), 1],
+			[Result.Err("not a number"), Result.Err("not a number"), 0],
 		],
 ):
-	var state := { "called": false }
-	var get_square := func(x):
-		state.called = true
-		return Result.Ok(x * x) if abs(x) < 1_000_000 else Result.Err("overflowed")
-	assert_that(input.and_then_call(get_square)).is_equal(expected)
-	assert_bool(state.called).is_equal(call_expected)
+	var cb := mock(Callbacks) as Callbacks
+	do_return(expected).on(cb).transform(any())
+	assert_that(input.and_then_call(cb.transform)).is_equal(expected)
+	verify(cb, times_called).transform(input._value if times_called > 0 else any())
 
 
 func test_or_else(
@@ -398,81 +364,17 @@ func test_or_else_call(
 		input: Result,
 		default: Result,
 		expected: Result,
-		call_expected: bool,
+		times_called: int,
 		_test_parameters := [
-			[Result.Ok(2), Result.Ok(4), Result.Ok(2), false],
-			[Result.Err(3), Result.Ok(9), Result.Ok(9), true],
-			[Result.Err(3), Result.Err(3), Result.Err(3), true],
+			[Result.Ok(2), Result.Ok(4), Result.Ok(2), 0],
+			[Result.Err(3), Result.Ok(9), Result.Ok(9), 1],
+			[Result.Err(3), Result.Err(3), Result.Err(3), 1],
 		],
 ):
-	var state := { "called": false }
-	var get_default := func(_x):
-		state.called = true
-		return default
-	assert_that(input.or_else_call(get_default)).is_equal(expected)
-	assert_bool(state.called).is_equal(call_expected)
-
-
-func test_recover_with(
-		input: Result,
-		expected: Result,
-		_test_parameters := [
-			[Result.Err("retryable"), Result.Ok("fallback")],
-			[Result.Err("fatal"), Result.Err("fatal")],
-			[Result.Ok("already-ok"), Result.Ok("already-ok")],
-		],
-):
-	assert_that(input.recover_with("retryable", "fallback")).is_equal(expected)
-
-
-func test_recover_with_call_executes_only_on_match():
-	var state := { "called": false }
-	var f := func(_err: String) -> String:
-		state.called = true
-		return "fallback"
-	assert_that(Result.Err("retryable").recover_with_call("retryable", f).pipe_err(f)).is_equal(Result.Ok("fallback"))
-	assert_bool(state.called).is_true()
-
-
-func test_recover_with_call_skips_callback_on_mismatch():
-	var state := { "called": false }
-	var f := func(_val: String) -> String:
-		state.called = true
-		return "fallback"
-	var original := Result.Err("something-else")
-	assert_that(original.recover_with_call("retryable", f)).is_equal(original)
-	assert_bool(state.called).is_false()
-
-
-func test_reject_with(
-		input: Result,
-		expected: Result,
-		_test_parameters := [
-			[Result.Ok("bad"), Result.Err("rejected")],
-			[Result.Ok("good"), Result.Ok("good")],
-			[Result.Err("already-err"), Result.Err("already-err")],
-		],
-):
-	assert_that(input.reject_with("bad", "rejected")).is_equal(expected)
-
-
-func test_reject_with_call_executes_only_on_match():
-	var state := { "called": false }
-	var f := func(_val: String) -> String:
-		state.called = true
-		return "rejected"
-	assert_that(Result.Ok("bad").reject_with_call("bad", f)).is_equal(Result.Err("rejected"))
-	assert_bool(state.called).is_true()
-
-
-func test_reject_with_call_skips_callback_on_mismatch():
-	var state := { "called": false }
-	var f := func(_val: String) -> String:
-		state.called = true
-		return "rejected"
-	var original := Result.Ok("something-else")
-	assert_that(original.reject_with_call("bad", f)).is_equal(original)
-	assert_bool(state.called).is_false()
+	var cb := mock(Callbacks) as Callbacks
+	do_return(default).on(cb).transform(any())
+	assert_that(input.or_else_call(cb.transform)).is_equal(expected)
+	verify(cb, times_called).transform(input._value if times_called > 0 else any())
 
 
 func test_ok(
@@ -527,17 +429,190 @@ func test_transpose(
 
 func test_transpose_with_non_option_value():
 	var ok_value_but_not_option := Result.Ok(42)
-	var some_invalid_data_error := Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
+	var some_invalid_data_error := Option.Some(Result.Err(Result.ERR_ILLEGAL_TRANSPOSE))
 	assert_that(ok_value_but_not_option.transpose()).is_equal(some_invalid_data_error)
+
+
+func test_map_member(
+		input: Result,
+		member_name: StringName,
+		expected: Result,
+		_test_parameters := [
+			[Result.Err("e"), &"prop", Result.Err("e")],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"prop", Result.Ok(42)],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"unknown_prop", Result.Err(Result.ERR_UNSAFE_MEMBER_ACCESS)],
+		],
+):
+	assert_that(input.map_member(member_name)).is_equal(expected)
+
+
+func test_map_method_call(
+		input: Result,
+		method_name: StringName,
+		arguments: Array,
+		expected: Result,
+		_test_parameters := [
+			[Result.Err("e"), &"mul_by", [2], Result.Err("e")],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [2], Result.Ok(84)],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"unknown_method", [], Result.Err(Result.ERR_UNSAFE_METHOD_ACCESS)],
+		],
+):
+	assert_that(input.map_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_map_member_or(
+		input: Result,
+		default: Variant,
+		member_name: StringName,
+		expected: Variant,
+		_test_parameters := [
+			[Result.Err("e"), "default", &"prop", "default"],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"prop", 42],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"unknown_prop", -1],
+		],
+):
+	assert_that(input.map_member_or(default, member_name)).is_equal(expected)
+
+
+func test_map_method_call_or(
+		input: Result,
+		default: Variant,
+		method_name: StringName,
+		arguments: Array,
+		expected: Variant,
+		_test_parameters := [
+			[Result.Err("e"), -1, &"mul_by", [2], -1],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"mul_by", [2], 84],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"mul_by", [], -1],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"unknown_method", [], -1],
+		],
+):
+	assert_that(input.map_method_call_or.bindv(arguments).call(default, method_name)).is_equal(expected)
+
+
+func test_map_member_or_call(
+		input: Result,
+		default: Variant,
+		member_name: StringName,
+		expected: Variant,
+		times_called: int,
+		_test_parameters := [
+			[Result.Err("e"), -1, &"prop", -1, 1],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"prop", 42, 0],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"unknown_prop", -1, 1],
+		],
+):
+	var cb := mock(Callbacks) as Callbacks
+	do_return(default).on(cb).transform(any())
+	assert_that(input.map_member_or_call(cb.transform, member_name)).is_equal(expected)
+	verify(cb, times_called).transform(input._value if times_called > 0 else any())
+
+
+func test_map_method_call_or_call(
+		input: Result,
+		default: Variant,
+		method_name: StringName,
+		arguments: Array,
+		expected: Variant,
+		times_called: int,
+		_test_parameters := [
+			[Result.Err("e"), -1, &"mul_by", [2], -1, 1],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"mul_by", [2], 84, 0],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"mul_by", [], -1, 1],
+			[Result.Ok(auto_free(CustomClass.new(42))), -1, &"unknown_method", [], -1, 1],
+		],
+):
+	var cb := mock(Callbacks) as Callbacks
+	do_return(default).on(cb).transform(any())
+	assert_that(input.map_method_call_or_call.bindv(arguments).call(cb.transform, method_name)).is_equal(expected)
+	verify(cb, times_called).transform(input._value if times_called > 0 else any())
+
+
+func test_and_then_member(
+		input: Result,
+		member_name: StringName,
+		expected: Result,
+		_test_parameters := [
+			[Result.Err("e"), &"inner_result", Result.Err("e")],
+			[Result.Ok(auto_free(CustomClass.new(0, Result.Ok(42)))), &"inner_result", Result.Ok(42)],
+			[Result.Ok(auto_free(CustomClass.new(0, Result.Err("inner")))), &"inner_result", Result.Err("inner")],
+			[Result.Ok(auto_free(CustomClass.new(0))), &"unknown_prop", Result.Err(Result.ERR_UNSAFE_MEMBER_ACCESS)],
+		],
+):
+	assert_that(input.and_then_member(member_name)).is_equal(expected)
+
+
+func test_and_then_method_call(
+		input: Result,
+		method_name: StringName,
+		arguments: Array,
+		expected: Result,
+		_test_parameters := [
+			[Result.Err("e"), &"get_result", [Result.Ok(42)], Result.Err("e")],
+			[Result.Ok(auto_free(CustomClass.new(0))), &"get_result", [Result.Ok(42)], Result.Ok(42)],
+			[Result.Ok(auto_free(CustomClass.new(0))), &"get_result", [Result.Err("inner")], Result.Err("inner")],
+			[Result.Ok(auto_free(CustomClass.new(0))), &"unknown_method", [], Result.Err(Result.ERR_UNSAFE_METHOD_ACCESS)],
+		],
+):
+	assert_that(input.and_then_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_or_else_member(
+		input: Result,
+		member_name: StringName,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok(42), &"prop", Result.Ok(42)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"prop", Result.Ok(7)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"unknown_prop", Result.Err(Result.ERR_UNSAFE_MEMBER_ACCESS)],
+		],
+):
+	assert_that(input.or_else_member(member_name)).is_equal(expected)
+
+
+func test_or_else_method_call(
+		input: Result,
+		method_name: StringName,
+		arguments: Array,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok(42), &"mul_by", [2], Result.Ok(42)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"mul_by", [2], Result.Ok(14)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"mul_by", [], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"unknown_method", [], Result.Err(Result.ERR_UNSAFE_METHOD_ACCESS)],
+		],
+):
+	assert_that(input.or_else_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_flatten_with_non_result_value():
+	var input := Result.Ok(42)
+	assert_that(input.flatten()).is_equal(input)
 
 
 class CustomClass:
 	var prop: int
+	var inner_result: Result
 
 
-	func _init(value: int) -> void:
+	func _init(value: int, res: Result = null) -> void:
 		prop = value
+		inner_result = res if res != null else Result.Err(0)
 
 
 	func mul_by(x: int) -> int:
 		return prop * x
+
+
+	func get_result(res: Result) -> Result:
+		return res
+
+
+class Callbacks:
+	func produce() -> Variant:
+		return null
+
+
+	func transform(_x: Variant) -> Variant:
+		return null

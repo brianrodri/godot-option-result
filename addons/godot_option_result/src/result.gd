@@ -1,310 +1,531 @@
 class_name Result
 extends RefCounted
-## Immutable.
+
+const ERR_ILLEGAL_UNWRAP := "[method Result.unwrap] called on Err"
+const ERR_ILLEGAL_UNWRAP_ERR := "[method Result.unwrap_err] called on Ok"
+const ERR_ILLEGAL_TRANSPOSE := (
+		"[method Result.transpose] when [member self] is [code]Ok(x)[/code] requires [code]x[/code] to be [Option]"
+)
+const ERR_UNSAFE_CALLABLE := "[param callable] must be valid [Callable]"
+const ERR_UNSAFE_ARGUMENTS := (
+		"[param arguments] size must match the [method Callable.get_argument_count] of [param callable]"
+)
+const ERR_UNSAFE_MEMBER_ACCESS := "[param member_name] must be valid property on [param instance]"
+const ERR_UNSAFE_METHOD_ACCESS := "[param method_name] must be valid method on [param instance]"
+const WARN_ILLEGAL_FLATTEN := (
+		"[method Result.flatten] when [member self] is [code]Ok(x)[/code] requires [code]x[/code] to be [Result]"
+)
 
 var _is_ok: bool
 var _value: Variant
 
 
-## [code]Ok(x)[/code] holds a success value [param x].
+## Constructs [code]Ok(x)[/code] holding [param x].
 static func Ok(x: Variant = null) -> Result:
-	return Result.new(true, x)
+	return new(x, true)
 
 
-## [code]Err(e)[/code] holds an error value [param e].
+## Constructs [code]Err(e)[/code] holding [param e].
 static func Err(e: Variant = null) -> Result:
-	return Result.new(false, e)
+	return new(e, false)
 
 
-## Returns [code]Ok(Error.OK)[/code] when [param e] is [constant @GlobalScope.OK], otherwise some
-## [code]Err(error_string(e))[/code].
-static func GdErr(e: Error) -> Result:
-	if e == Error.OK:
+## Constructs [Result] from the built-in [enum @GlobalScope.Error] enum.
+##
+## [codeblock]
+## GdErr(Error.OK)   -> Ok(Error.OK)
+## GdErr(other_code) -> Err(error_string(other_code))
+## [/codeblock]
+static func GdErr(code: Error) -> Result:
+	if code == Error.OK:
 		return Ok(Error.OK)
-	return Err(error_string(e))
+	return Err(error_string(code))
 
 
-## Returns [code]Ok(f(...args))[/code] when [param f] can be invoked with [param args] succesfully, otherwise some
-## [method Result.GdErr].
-static func safe_call(f: Callable, ...args: Array) -> Result:
-	if not f.is_valid():
-		return GdErr(ERR_INVALID_DATA)
-	if f.get_argument_count() != args.size():
-		return GdErr(ERR_INVALID_PARAMETER)
-	return Ok(f.callv(args))
+## Calls [param callable] safely, wrapping its return value or the reason it failed in a [Result].
+##
+## [codeblock]
+## safe_call(callable, ...arguments) when valid call           -> Ok(callable.callv(arguments))
+## safe_call(callable, ...arguments) when invalid callable     -> Err(ERR_UNSAFE_CALLABLE)
+## safe_call(callable, ...arguments) when wrong argument count -> Err(ERR_UNSAFE_ARGUMENTS)
+## [/codeblock]
+static func safe_call(callable: Callable, ...arguments: Array) -> Result:
+	if not callable.is_valid():
+		return Err(ERR_UNSAFE_CALLABLE)
+	if arguments.size() != callable.get_argument_count():
+		return Err(ERR_UNSAFE_ARGUMENTS)
+	return Ok(callable.callv(arguments))
 
 
-## [code]Ok(instance.member)[/code] when [param member_name] is a valid property on [param instance], otherwise some
-## [method Result.GdErr].
+## Reads [param member_name] from [param instance] into a [Result].
+##
+## [codeblock]
+## safe_member(instance, member_name) when valid access   -> Ok(instance.member)
+## safe_member(instance, member_name) when invalid access -> Err(ERR_UNSAFE_MEMBER_ACCESS)
+## [/codeblock]
 static func safe_member(instance: Variant, member_name: StringName) -> Result:
-	if not is_instance_valid(instance):
-		return GdErr(ERR_INVALID_DATA)
-	if member_name not in instance:
-		return GdErr(ERR_INVALID_PARAMETER)
+	if not is_instance_valid(instance) or member_name not in instance:
+		return Err(ERR_UNSAFE_MEMBER_ACCESS)
 	return Ok(instance.get(member_name))
 
 
-## Returns [code]Ok(x.method(...method_args))[/code] when [param method_name] is a valid method on [param instance] that
-## can be invoked with [param method_args], otherwise some [method Result.GdErr].
-static func safe_method_call(instance: Variant, method_name: StringName, ...method_args: Array) -> Result:
-	return safe_call.bindv(method_args).call(Callable.create(instance, method_name))
+## Calls [param method_name] on [param instance], wrapping its return value or the reason it failed in a [Result].
+##
+## [codeblock]
+## safe_method_call(instance, method_name, ...arguments) when valid call           -> Ok(instance.method(...arguments))
+## safe_method_call(instance, method_name, ...arguments) when invalid method       -> Err(ERR_UNSAFE_METHOD_ACCESS)
+## safe_method_call(instance, method_name, ...arguments) when wrong argument count -> Err(ERR_UNSAFE_ARGUMENTS)
+## [/codeblock]
+static func safe_method_call(instance: Variant, method_name: StringName, ...arguments: Array) -> Result:
+	var callable := Callable.create(instance, method_name)
+	if not callable.is_valid():
+		return Err(ERR_UNSAFE_METHOD_ACCESS)
+	if arguments.size() != callable.get_argument_count():
+		return Err(ERR_UNSAFE_ARGUMENTS)
+	return Ok(callable.callv(arguments))
 
 
-func _init(as_ok: bool, value: Variant) -> void:
-	self._is_ok = as_ok
-	self._value = value
+func _init(value: Variant, as_ok: bool) -> void:
+	_value = value
+	_is_ok = bool(as_ok)
 
 
 func _to_string() -> String:
-	var format_str := "Ok({0})" if self._is_ok else "Err({0})"
-	var value_str := var_to_str(self._value) if self._value is String or self._value is StringName else str(self._value)
+	var format_str := "Ok({0})" if _is_ok else "Err({0})"
+	var value_str := var_to_str(_value) if _value is String or _value is StringName else str(_value)
 	return format_str.format([value_str])
 
 
-## Returns whether [member self] is [code]Ok(x)[/code].
+## Returns whether [member self] is an [code]Ok[/code] [Result].
+##
+## [codeblock]
+## self is Ok(x)  -> true
+## self is Err(e) -> false
+## [/codeblock]
 func is_ok() -> bool:
-	return self._is_ok
+	return _is_ok
 
 
-## Returns whether [member self] is [code]Err(e)[/code].
+## Returns whether [member self] is an [code]Err[/code] [Result].
+##
+## [codeblock]
+## self is Ok(x)  -> false
+## self is Err(e) -> true
+## [/codeblock]
 func is_err() -> bool:
-	return not self._is_ok
+	return not _is_ok
 
 
-## Returns whether [member self] is [code]Ok(x)[/code] where [code]x[/code] satisfies the predicate [param p].
-func is_ok_and(p: Callable) -> bool:
-	if self._is_ok:
-		var passed: bool = p.call(self._value)
-		return passed
+## Returns whether [member self] is [code]Ok(x)[/code] and [param predicate] returns truthy for [code]x[/code].
+##
+## [codeblock]
+## self is Ok(x) when predicate.call(x) is truthy -> true
+## self is Ok(x) when predicate.call(x) is falsy  -> false
+## self is Err(e)                                 -> false
+## [/codeblock]
+func is_ok_and(predicate: Callable) -> bool:
+	if _is_ok:
+		assert(predicate.is_valid())
+		return bool(predicate.call(_value))
 	return false
 
 
-## Returns whether [member self] is [code]Err(e)[/code] where [code]e[/code] satisfies the predicate [param p].
-func is_err_and(p: Callable) -> bool:
-	if self._is_ok:
+## Returns whether [member self] is [code]Err(e)[/code] and [param predicate] returns truthy for [code]e[/code].
+##
+## [codeblock]
+## self is Ok(x)                                   -> false
+## self is Err(e) when predicate.call(e) is truthy -> true
+## self is Err(e) when predicate.call(e) is falsy  -> false
+## [/codeblock]
+func is_err_and(predicate: Callable) -> bool:
+	if _is_ok:
 		return false
-	var passed: bool = p.call(self._value)
-	return passed
+	assert(predicate.is_valid())
+	return bool(predicate.call(_value))
 
 
-## Calls [param f] when [member self] is [code]Ok(x)[/code]. Returns [member self] regardless.
-func pipe(f: Callable) -> Result:
-	if self._is_ok:
-		f.call(self._value)
+## Calls [param callable] with the wrapped value when [member self] is [code]Ok[/code], then returns [member self].
+##
+## [codeblock]
+## self is Ok(x)  -> calls callable.call(x); returns self
+## self is Err(e) -> returns self
+## [/codeblock]
+func pipe(callable: Callable) -> Result:
+	if _is_ok:
+		assert(callable.is_valid())
+		callable.call(_value)
 	return self
 
 
-## Calls [param f] when [member self] is [code]Err(e)[/code]. Returns [member self] regardless.
-func pipe_err(f: Callable) -> Result:
-	if not self._is_ok:
-		f.call(self._value)
+## Calls [param callable] with the wrapped error when [member self] is [code]Err[/code], then returns [member self].
+##
+## [codeblock]
+## self is Ok(x)  -> returns self
+## self is Err(e) -> calls callable.call(e); returns self
+## [/codeblock]
+func pipe_err(callable: Callable) -> Result:
+	if not _is_ok:
+		assert(callable.is_valid())
+		callable.call(_value)
 	return self
 
 
-## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise fails with
-## [method @GlobalScope.assert] in debug builds and [method OS.crash] in release/non-debug builds.[br]
-## [br]
-## Calls [method String.format] on [param msg] to embed [member self] into the [code]{0}[/code] placeholder.
-func unwrap(msg: String = "[method Result.unwrap] called on {0}") -> Variant:
-	if not self._is_ok:
-		if OS.is_debug_build():
-			assert(false, msg.format([self.to_string()]))
-		else:
-			OS.crash(msg.format([self.to_string()]))
-	return self._value
+## Returns the wrapped value, asserting that [member self] is [code]Ok[/code].
+##
+## [codeblock]
+## self is Ok(x)  -> x
+## self is Err(e) -> asserts with [constant ERR_ILLEGAL_UNWRAP] and returns null
+## [/codeblock]
+func unwrap() -> Variant:
+	if not _is_ok:
+		assert(false, ERR_ILLEGAL_UNWRAP)
+		return null
+	return _value
 
 
-## Returns [code]e[/code] when [member self] is [code]Err(e)[/code], otherwise fails with
-## [method @GlobalScope.assert] in debug builds and [method OS.crash] in release/non-debug builds.[br]
-## [br]
-## Calls [method String.format] on [param msg] to embed [member self] into the [code]{0}[/code] placeholder.
-func unwrap_err(msg: String = "[method Result.unwrap_err] called on {0}") -> Variant:
-	if self._is_ok:
-		if OS.is_debug_build():
-			assert(false, msg.format([self.to_string()]))
-		else:
-			OS.crash(msg.format([self.to_string()]))
-	return self._value
+## Returns the wrapped error, asserting that [member self] is [code]Err[/code].
+##
+## [codeblock]
+## self is Ok(x)  -> asserts with [constant ERR_ILLEGAL_UNWRAP_ERR]
+## self is Err(e) -> e
+## [/codeblock]
+func unwrap_err() -> Variant:
+	if _is_ok:
+		assert(false, ERR_ILLEGAL_UNWRAP_ERR)
+		return null
+	return _value
 
 
-## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise [param other].
+## Returns the wrapped value, or [param other] when [member self] is [code]Err[/code].
+##
+## [codeblock]
+## self is Ok(x)  -> x
+## self is Err(e) -> other
+## [/codeblock]
 func unwrap_or(other: Variant) -> Variant:
-	if self._is_ok:
-		return self._value
+	if _is_ok:
+		return _value
 	return other
 
 
-## Returns [code]x[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]f(e)[/code] when [member self] is
-## [code]Err(e)[/code].
-func unwrap_or_call(f: Callable) -> Variant:
-	if self._is_ok:
-		return self._value
-	return f.call(self._value)
+## Returns the wrapped value, or [code]callable.call(e)[/code] when [member self] is [code]Err(e)[/code].
+##
+## [codeblock]
+## self is Ok(x)  -> x
+## self is Err(e) -> callable.call(e)
+## [/codeblock]
+func unwrap_or_call(callable: Callable) -> Variant:
+	if _is_ok:
+		return _value
+	assert(callable.is_valid())
+	return callable.call(_value)
 
 
-## Returns [code]Ok(f(x))[/code] when [member self] is [code]Ok(x)[/code], otherwise [member self].
-func map(f: Callable) -> Result:
-	if self._is_ok:
-		return Ok(f.call(self._value))
+## Maps [code]Ok(x)[/code] to [code]Ok(callable.call(x))[/code], leaves [code]Err[/code] unchanged.
+##
+## [codeblock]
+## self is Ok(x)  -> Ok(callable.call(x))
+## self is Err(e) -> self
+## [/codeblock]
+func map(callable: Callable) -> Result:
+	if _is_ok:
+		assert(callable.is_valid())
+		return Ok(callable.call(_value))
 	return self
 
 
-## Returns [code]Err(f(e))[/code] when [member self] is [code]Err(e)[/code], otherwise [member self].
-func map_err(f: Callable) -> Result:
-	if self._is_ok:
+## Maps [code]Ok(x)[/code] to a [Result] wrapping [code]x.member[/code], leaves [code]Err[/code] unchanged.
+##
+## [codeblock]
+## self is Ok(x) when valid access   -> Ok(x.member)
+## self is Ok(x) when invalid access -> Err(ERR_UNSAFE_MEMBER_ACCESS)
+## self is Err(e)                    -> self
+## [/codeblock]
+func map_member(member_name: StringName) -> Result:
+	if _is_ok:
+		return safe_member(_value, member_name)
+	return self
+
+
+## Maps [code]Ok(x)[/code] to a [Result] wrapping [code]x.method(...arguments)[/code], leaves [code]Err[/code]
+## unchanged.
+##
+## [codeblock]
+## self is Ok(x) when valid call   -> Ok(x.method(...arguments))
+## self is Ok(x) when invalid call -> Err(ERR_UNSAFE_METHOD_ACCESS or ERR_UNSAFE_ARGUMENTS)
+## self is Err(e)                  -> self
+## [/codeblock]
+func map_method_call(method_name: StringName, ...arguments: Array) -> Result:
+	if _is_ok:
+		return safe_method_call.bindv(arguments).call(_value, method_name)
+	return self
+
+
+## Maps [code]Err(e)[/code] to [code]Err(callable.call(e))[/code], leaves [code]Ok[/code] unchanged.
+##
+## [codeblock]
+## self is Ok(x)  -> self
+## self is Err(e) -> Err(callable.call(e))
+## [/codeblock]
+func map_err(callable: Callable) -> Result:
+	if _is_ok:
 		return self
-	return Err(f.call(self._value))
+	assert(callable.is_valid())
+	return Err(callable.call(_value))
 
 
-## Returns [code]f(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [param d].
-func map_or(d: Variant, f: Callable) -> Variant:
-	if self._is_ok:
-		return f.call(self._value)
-	return d
+## Returns [code]callable.call(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [param default].
+##
+## [codeblock]
+## self is Ok(x)  -> callable.call(x)
+## self is Err(e) -> default
+## [/codeblock]
+func map_or(default: Variant, callable: Callable) -> Variant:
+	if _is_ok:
+		assert(callable.is_valid())
+		return callable.call(_value)
+	return default
 
 
-## Returns [code]f(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]d(e)[/code] when [member self] is
-## [code]Err(e)[/code].
-func map_or_call(d: Callable, f: Callable) -> Variant:
-	if self._is_ok:
-		return f.call(self._value)
-	return d.call(self._value)
+## Returns [code]x.member[/code] when accessible on [code]Ok(x)[/code], otherwise [param default].
+##
+## [codeblock]
+## self is Ok(x) when valid access   -> x.member
+## self is Ok(x) when invalid access -> default
+## self is Err(e)                    -> default
+## [/codeblock]
+func map_member_or(default: Variant, member_name: StringName) -> Variant:
+	if _is_ok:
+		return safe_member(_value, member_name).unwrap_or(default)
+	return default
 
 
-## Returns [param other] when [member self] is [code]Ok(x)[/code], otherwise [member self].
+## Returns [code]x.method(...arguments)[/code] when callable on [code]Ok(x)[/code], otherwise [param default].
+##
+## [codeblock]
+## self is Ok(x) when valid call   -> x.method(...arguments)
+## self is Ok(x) when invalid call -> default
+## self is Err(e)                  -> default
+## [/codeblock]
+func map_method_call_or(default: Variant, method_name: StringName, ...arguments: Array) -> Variant:
+	if _is_ok:
+		return safe_method_call.bindv(arguments).call(_value, method_name).unwrap_or(default)
+	return default
+
+
+## Returns [code]callable.call(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise
+## [code]default_provider.call(e)[/code].
+##
+## [codeblock]
+## self is Ok(x)  -> callable.call(x)
+## self is Err(e) -> default_provider.call(e)
+## [/codeblock]
+func map_or_call(default_provider: Callable, callable: Callable) -> Variant:
+	if _is_ok:
+		assert(callable.is_valid())
+		return callable.call(_value)
+	assert(default_provider.is_valid())
+	return default_provider.call(_value)
+
+
+## Returns [code]x.member[/code] when accessible on [code]Ok(x)[/code], otherwise [code]default_provider.call(e)[/code].
+##
+## [codeblock]
+## self is Ok(x) when valid access   -> x.member
+## self is Ok(x) when invalid access -> default_provider.call(x)
+## self is Err(e)                    -> default_provider.call(e)
+## [/codeblock]
+func map_member_or_call(default_provider: Callable, member_name: StringName) -> Variant:
+	if _is_ok:
+		var result: Result = safe_member(_value, member_name)
+		if result._is_ok:
+			return result._value
+	assert(default_provider.is_valid())
+	return default_provider.call(_value)
+
+
+## Returns [code]x.method(...arguments)[/code] when callable on [code]Ok(x)[/code], otherwise
+## [code]default_provider.call(e)[/code].
+##
+## [codeblock]
+## self is Ok(x) when valid call   -> x.method(...arguments)
+## self is Ok(x) when invalid call -> default_provider.call(x)
+## self is Err(e)                  -> default_provider.call(e)
+## [/codeblock]
+func map_method_call_or_call(default_provider: Callable, method_name: StringName, ...arguments: Array) -> Variant:
+	if _is_ok:
+		var result: Result = safe_method_call.bindv(arguments).call(_value, method_name)
+		if result._is_ok:
+			return result._value
+	assert(default_provider.is_valid())
+	return default_provider.call(_value)
+
+
+## Returns [param other] when [member self] is [code]Ok[/code], otherwise [member self].
+##
+## [codeblock]
+## self is Ok(x)  -> other
+## self is Err(e) -> self
+## [/codeblock]
 func and_then(other: Result) -> Result:
-	if self._is_ok:
+	if _is_ok:
 		return other
 	return self
 
 
-## Returns [code]f(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [member self].[br]
-## [br]
-## [param f] must return [Result].
-func and_then_call(f: Callable) -> Result:
-	if self._is_ok:
-		var other: Result = f.call(self._value)
+## Returns [code]callable.call(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [member self].
+##
+## [codeblock]
+## self is Ok(x)  -> callable.call(x)
+## self is Err(e) -> self
+## [/codeblock]
+func and_then_call(callable: Callable) -> Result:
+	if _is_ok:
+		assert(callable.is_valid())
+		var other: Result = callable.call(_value)
 		return other
 	return self
 
 
-## [code]Ok(x.member)[/code] when [param member_name] is a valid property on [code]x[/code] from [member self],
-## otherwise some [code]GdErr[/code].
+## Chains a [Result]-valued member access, flattening the result.
+##
+## [codeblock]
+## self is Ok(x) when x.member is Result(y)  -> Result(y)
+## self is Ok(x) when x.member is not Result -> Ok(x.member) [with warning]
+## self is Ok(x) when invalid access         -> Err(ERR_UNSAFE_MEMBER_ACCESS)
+## self is Err(e)                            -> self
+## [/codeblock]
 func and_then_member(member_name: StringName) -> Result:
-	if self._is_ok:
-		var other: Result = safe_member(self._value, member_name)
-		return other
+	if _is_ok:
+		var other: Result = safe_member(_value, member_name)
+		return other.flatten()
 	return self
 
 
-## Returns [code]Ok(x.method(...method_args))[/code] when [param method_name] is a valid method on
-## [code]x[/code] from [member self] that can be invoked with [param method_args], otherwise some [code]GdErr[/code].
-func and_then_method_call(method_name: StringName, ...method_args: Array) -> Result:
-	if self._is_ok:
-		var other: Result = safe_method_call.bindv(method_args).call(self._value, method_name)
-		return other
+## Chains a [Result]-valued method call, flattening the result.
+##
+## [codeblock]
+## self is Ok(x) when x.method(...arguments) is Result(y)  -> Result(y)
+## self is Ok(x) when x.method(...arguments) is not Result -> Ok(x.method(...arguments)) [with warning]
+## self is Ok(x) when invalid call                         -> Err(ERR_UNSAFE_METHOD_ACCESS or ERR_UNSAFE_ARGUMENTS)
+## self is Err(e)                                          -> self
+## [/codeblock]
+func and_then_method_call(method_name: StringName, ...arguments: Array) -> Result:
+	if _is_ok:
+		var other: Result = safe_method_call.bindv(arguments).call(_value, method_name)
+		return other.flatten()
 	return self
 
 
-## Returns [param other] when [member self] is [code]Err(e)[/code], otherwise [member self].
+## Returns [member self] when [code]Ok[/code], otherwise [param other].
+##
+## [codeblock]
+## self is Ok(x)  -> self
+## self is Err(e) -> other
+## [/codeblock]
 func or_else(other: Result) -> Result:
-	if self._is_ok:
+	if _is_ok:
 		return self
 	return other
 
 
-## Returns [code]f(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [member self].[br]
-## [br]
-## [param f] must return [Result].
-func or_else_call(f: Callable) -> Result:
-	if self._is_ok:
+## Returns [member self] when [code]Ok[/code], otherwise [code]callable.call(e)[/code].
+##
+## [codeblock]
+## self is Ok(x)  -> self
+## self is Err(e) -> callable.call(e)
+## [/codeblock]
+func or_else_call(callable: Callable) -> Result:
+	if _is_ok:
 		return self
-	var other: Result = f.call(self._value)
+	assert(callable.is_valid())
+	var other: Result = callable.call(_value)
 	return other
 
 
-## Returns [code]Ok(e.member)[/code] when [param member_name] is a valid property on [code]e[/code] from [member self],
-## otherwise some [code]GdErr[/code].
+## Recovers [code]Err(e)[/code] by reading [code]e.member[/code], leaves [code]Ok[/code] unchanged.
+##
+## [codeblock]
+## self is Ok(x)                      -> self
+## self is Err(e) when valid access   -> Ok(e.member)
+## self is Err(e) when invalid access -> Err(ERR_UNSAFE_MEMBER_ACCESS)
+## [/codeblock]
 func or_else_member(member_name: StringName) -> Result:
-	if self._is_ok:
+	if _is_ok:
 		return self
-	var other: Result = safe_member(self._value, member_name)
+	var other: Result = safe_member(_value, member_name)
 	return other
 
 
-## Returns [code]Ok(e.method(...method_args))[/code] when [param method_name] is a valid method on
-## [code]e[/code] from [member self] that can be invoked with [param method_args], otherwise some [code]GdErr[/code].
-func or_else_method_call(method_name: StringName, ...method_args: Array) -> Result:
-	if self._is_ok:
+## Recovers [code]Err(e)[/code] by calling [code]e.method(...arguments)[/code], leaves [code]Ok[/code] unchanged.
+##
+## [codeblock]
+## self is Ok(x)                    -> self
+## self is Err(e) when valid call   -> Ok(e.method(...arguments))
+## self is Err(e) when invalid call -> Err(ERR_UNSAFE_METHOD_ACCESS or ERR_UNSAFE_ARGUMENTS)
+## [/codeblock]
+func or_else_method_call(method_name: StringName, ...arguments: Array) -> Result:
+	if _is_ok:
 		return self
-	var other: Result = safe_method_call.bindv(method_args).call(self._value, method_name)
+	var other: Result = safe_method_call.bindv(arguments).call(_value, method_name)
 	return other
 
 
-## Returns [code]Ok(val)[/code] when [member self] is [code]Err(ok_err)[/code], otherwise [member self].
-func recover_with(ok_err: Variant, val: Variant) -> Result:
-	if self._is_ok or self._value != ok_err:
-		return self
-	return Result.Ok(val)
-
-
-## Returns [code]Ok(f(ok_err))[/code] when [member self] is [code]Err(ok_err)[/code], otherwise [member self].
-func recover_with_call(ok_err: Variant, f: Callable) -> Result:
-	if self._is_ok or self._value != ok_err:
-		return self
-	return Result.Ok(f.call(self._value))
-
-
-## Returns [code]Err(err)[/code] when [member self] is [code]Ok(bad_ok)[/code], otherwise [member self].
-func reject_with(bad_ok: Variant, err: Variant) -> Result:
-	if not self._is_ok or self._value != bad_ok:
-		return self
-	return Result.Err(err)
-
-
-## Returns [code]Err(f(bad_ok))[/code] when [member self] is [code]Ok(bad_ok)[/code], otherwise [member self].
-func reject_with_call(bad_ok: Variant, f: Callable) -> Result:
-	if not self._is_ok or self._value != bad_ok:
-		return self
-	return Result.Err(f.call(self._value))
-
-
-## Returns [Result] when [member self] is [code]Ok(Result)[/code], otherwise [member self].
-func flatten() -> Result:
-	if self._is_ok and self._value is Result:
-		var inner: Result = self._value
-		return inner
-	return self
-
-
-## Returns [code]Some(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [code]None[/code].
+## Converts [member self] into an [Option], discarding any [code]Err[/code] value.
+##
+## [codeblock]
+## self is Ok(x)  -> Some(x)
+## self is Err(e) -> None
+## [/codeblock]
 func ok() -> Option:
-	if self._is_ok:
-		return Option.Some(self._value)
+	if _is_ok:
+		return Option.Some(_value)
 	return Option.None
 
 
-## Returns [code]Some(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]None[/code].
+## Converts [member self] into an [Option] over the [code]Err[/code] value, discarding any [code]Ok[/code] value.
+##
+## [codeblock]
+## self is Ok(x)  -> None
+## self is Err(e) -> Some(e)
+## [/codeblock]
 func err() -> Option:
-	if self._is_ok:
+	if _is_ok:
 		return Option.None
-	return Option.Some(self._value)
+	return Option.Some(_value)
+
+
+## Flattens [code]Ok(Result)[/code] into the inner [Result].
+##
+## [codeblock]
+## self is Ok(Result(x))      -> Result(x)
+## self is Ok(not_a_result)   -> self [with warning]
+## self is Err(e)             -> self
+## [/codeblock]
+func flatten() -> Result:
+	if not _is_ok:
+		return self
+	if _value is not Result:
+		push_warning(WARN_ILLEGAL_FLATTEN)
+		return self
+	var inner: Result = _value
+	return inner
 
 
 ## Transposes a [code]Result[Option][/code] into an [code]Option[Result][/code].
 ##
 ## [codeblock]
-## self is Result.Ok(Option.None)    -> Option.None
-## self is Result.Ok(Option.Some(x)) -> Option.Some(Result.Ok(x))
-## self is Result.Err(e)             -> Option.Some(Result.Err(e))
-## self is Result.Ok(_)              -> Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
+## self is Ok(None)           -> None
+## self is Ok(Some(x))        -> Some(Ok(x))
+## self is Ok(not_an_option)  -> Some(Err(ERR_ILLEGAL_TRANSPOSE))
+## self is Err(e)             -> Some(Err(e))
 ## [/codeblock]
 func transpose() -> Option:
-	if not self._is_ok:
+	if not _is_ok:
 		return Option.Some(self)
-	if self._value is not Option:
-		return Option.Some(Result.GdErr(Error.ERR_INVALID_DATA))
-	var option_value: Option = self._value
+	if _value is not Option:
+		return Option.Some(Err(ERR_ILLEGAL_TRANSPOSE))
+	var option_value: Option = _value
 	if option_value._is_some:
-		return Option.Some(Result.Ok(option_value._value))
+		return Option.Some(Ok(option_value._value))
 	return Option.None
