@@ -22,12 +22,12 @@ var _value: Variant
 
 ## Constructs [code]Ok(x)[/code] holding [param x].
 static func Ok(x: Variant = null) -> Result:
-	return new(true, x)
+	return new(x, true)
 
 
 ## Constructs [code]Err(e)[/code] holding [param e].
 static func Err(e: Variant = null) -> Result:
-	return new(false, e)
+	return new(e, false)
 
 
 ## Constructs [Result] from the built-in [enum @GlobalScope.Error] enum.
@@ -85,9 +85,9 @@ static func safe_method_call(instance: Variant, method_name: StringName, ...argu
 	return Ok(callable.callv(arguments))
 
 
-func _init(as_ok: bool, value: Variant) -> void:
-	_is_ok = as_ok
+func _init(value: Variant, as_ok: bool) -> void:
 	_value = value
+	_is_ok = bool(as_ok)
 
 
 func _to_string() -> String:

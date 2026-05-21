@@ -18,7 +18,7 @@ var _value: Variant
 
 ## Holds [code]Some(x)[/code].
 static func Some(x: Variant) -> Option:
-	return new(true, x)
+	return new(x, true)
 
 
 ## Holds [code]Some(x)[/code] when [param x] is not null, otherwise [code]None[/code].
@@ -36,8 +36,8 @@ static func from_method_call(instance: Variant, method_name: StringName, ...argu
 	return Result.safe_method_call.bindv(arguments).call(instance, method_name).ok()
 
 
-func _init(as_some: bool = false, x: Variant = null) -> void:
-	_is_some = as_some
+func _init(x: Variant = null, as_some: bool = false) -> void:
+	_is_some = bool(as_some)
 	_value = x if _is_some else null
 
 
