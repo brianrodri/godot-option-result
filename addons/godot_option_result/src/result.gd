@@ -462,7 +462,6 @@ func map_or_call(default_provider: Callable, callable: Callable) -> Variant:
 ## [/codeblock]
 func map_member_or_call(default_provider: Callable, member_name: StringName) -> Variant:
 	if _is_ok:
-		assert(default_provider.is_valid())
 		return safe_member(_value, member_name).unwrap_or_call(default_provider.bind(_value).unbind(1))
 	assert(default_provider.is_valid())
 	return default_provider.call(_value)
@@ -478,7 +477,6 @@ func map_member_or_call(default_provider: Callable, member_name: StringName) -> 
 ## [/codeblock]
 func map_method_call_or_call(default_provider: Callable, method_name: StringName, ...arguments: Array) -> Variant:
 	if _is_ok:
-		assert(default_provider.is_valid())
 		return safe_method_call.bindv(arguments).call(_value, method_name).unwrap_or_call(
 			default_provider.bind(_value).unbind(1),
 		)
@@ -513,7 +511,6 @@ func map_err_member_or_call(default_provider: Callable, member_name: StringName)
 	if _is_ok:
 		assert(default_provider.is_valid())
 		return default_provider.call(_value)
-	assert(default_provider.is_valid())
 	return safe_member(_value, member_name).unwrap_or_call(default_provider.bind(_value).unbind(1))
 
 
@@ -529,7 +526,6 @@ func map_err_method_call_or_call(default_provider: Callable, method_name: String
 	if _is_ok:
 		assert(default_provider.is_valid())
 		return default_provider.call(_value)
-	assert(default_provider.is_valid())
 	return safe_method_call.bindv(arguments).call(_value, method_name).unwrap_or_call(
 		default_provider.bind(_value).unbind(1),
 	)

@@ -190,6 +190,66 @@ func test_is_err_and(
 	assert_bool(result.is_err_and(func(x): return x > 1)).is_equal(expected)
 
 
+func test_is_ok_and_member(
+		result: Result,
+		member_name: StringName,
+		expected: bool,
+		_test_parameters := [
+			[Result.Ok(auto_free(CustomClass.new(42))), &"prop", true],
+			[Result.Ok(auto_free(CustomClass.new(0))), &"prop", false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"unknown_prop", false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"prop", false],
+		],
+):
+	assert_bool(result.is_ok_and_member(member_name)).is_equal(expected)
+
+
+func test_is_ok_and_method_call(
+		result: Result,
+		method_name: StringName,
+		arguments: Array,
+		expected: bool,
+		_test_parameters := [
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [2], true],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [0], false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [], false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"unknown_method", [], false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"mul_by", [2], false],
+		],
+):
+	assert_bool(result.is_ok_and_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_is_err_and_member(
+		result: Result,
+		member_name: StringName,
+		expected: bool,
+		_test_parameters := [
+			[Result.Err(auto_free(CustomClass.new(42))), &"prop", true],
+			[Result.Err(auto_free(CustomClass.new(0))), &"prop", false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"unknown_prop", false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"prop", false],
+		],
+):
+	assert_bool(result.is_err_and_member(member_name)).is_equal(expected)
+
+
+func test_is_err_and_method_call(
+		result: Result,
+		method_name: StringName,
+		arguments: Array,
+		expected: bool,
+		_test_parameters := [
+			[Result.Err(auto_free(CustomClass.new(42))), &"mul_by", [2], true],
+			[Result.Err(auto_free(CustomClass.new(42))), &"mul_by", [0], false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"mul_by", [], false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"unknown_method", [], false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [2], false],
+		],
+):
+	assert_bool(result.is_err_and_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
 func test_pipe(
 		input: Result,
 		times_called: int,
