@@ -344,7 +344,8 @@ func map_err_member(member_name: StringName) -> Result:
 	return Err(inner._value) if inner._is_ok else inner
 
 
-## Maps [code]Err(e)[/code] to a [Result] wrapping [code]e.method(...arguments)[/code], leaves [code]Ok[/code] unchanged.
+## Maps [code]Err(e)[/code] to a [Result] wrapping [code]e.method(...arguments)[/code], leaves [code]Ok[/code]
+## unchanged.
 ##
 ## [codeblock]
 ## self is Ok(x)                    -> self
@@ -436,8 +437,8 @@ func map_err_method_call_or(default: Variant, method_name: StringName, ...argume
 	return safe_method_call.bindv(arguments).call(_value, method_name).unwrap_or(default)
 
 
-## Returns [code]callable.call(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise
-## [code]default_provider.call(e)[/code].
+## Returns [code]callable.call(x)[/code] when [member self] is [code]Ok(x)[/code], otherwise [param default_provider]
+## called with the wrapped error.
 ##
 ## [codeblock]
 ## self is Ok(x)  -> callable.call(x)
@@ -451,8 +452,8 @@ func map_or_call(default_provider: Callable, callable: Callable) -> Variant:
 	return default_provider.call(_value)
 
 
-## Returns [code]x.member[/code] when accessible on [code]Ok(x)[/code], otherwise [code]default_provider[/code] called
-## with the wrapped value.
+## Returns [code]x.member[/code] when accessible on [code]Ok(x)[/code], otherwise [param default_provider] called with
+## the wrapped error.
 ##
 ## [codeblock]
 ## self is Ok(x) when valid access   -> x.member
@@ -467,8 +468,8 @@ func map_member_or_call(default_provider: Callable, member_name: StringName) -> 
 	return default_provider.call(_value)
 
 
-## Returns [code]x.method(...arguments)[/code] when callable on [code]Ok(x)[/code], otherwise [code]default_provider[/code]
-## called with the wrapped value.
+## Returns [code]x.method(...arguments)[/code] when callable on [code]Ok(x)[/code], otherwise [param default_provider]
+## called with the wrapped error.
 ##
 ## [codeblock]
 ## self is Ok(x) when valid call   -> x.method(...arguments)
@@ -478,12 +479,15 @@ func map_member_or_call(default_provider: Callable, member_name: StringName) -> 
 func map_method_call_or_call(default_provider: Callable, method_name: StringName, ...arguments: Array) -> Variant:
 	if _is_ok:
 		assert(default_provider.is_valid())
-		return safe_method_call.bindv(arguments).call(_value, method_name).unwrap_or_call(default_provider.bind(_value).unbind(1))
+		return safe_method_call.bindv(arguments).call(_value, method_name).unwrap_or_call(
+			default_provider.bind(_value).unbind(1),
+		)
 	assert(default_provider.is_valid())
 	return default_provider.call(_value)
 
 
-## Returns [code]callable.call(e)[/code] when [member self] is [code]Err(e)[/code], otherwise [code]default_provider.call(x)[/code].
+## Returns [code]callable.call(e)[/code] when [member self] is [code]Err(e)[/code], otherwise
+## [param default_provider].
 ##
 ## [codeblock]
 ## self is Ok(x)  -> default_provider.call(x)
@@ -497,7 +501,7 @@ func map_err_or_call(default_provider: Callable, callable: Callable) -> Variant:
 	return callable.call(_value)
 
 
-## Returns [code]e.member[/code] when accessible on [code]Err(e)[/code], otherwise [code]default_provider[/code] called
+## Returns [code]e.member[/code] when accessible on [code]Err(e)[/code], otherwise [param default_provider] called
 ## with the wrapped value.
 ##
 ## [codeblock]
@@ -513,7 +517,7 @@ func map_err_member_or_call(default_provider: Callable, member_name: StringName)
 	return safe_member(_value, member_name).unwrap_or_call(default_provider.bind(_value).unbind(1))
 
 
-## Returns [code]e.method(...arguments)[/code] when callable on [code]Err(e)[/code], otherwise [code]default_provider[/code]
+## Returns [code]e.method(...arguments)[/code] when callable on [code]Err(e)[/code], otherwise [param default_provider]
 ## called with the wrapped value.
 ##
 ## [codeblock]
@@ -526,7 +530,9 @@ func map_err_method_call_or_call(default_provider: Callable, method_name: String
 		assert(default_provider.is_valid())
 		return default_provider.call(_value)
 	assert(default_provider.is_valid())
-	return safe_method_call.bindv(arguments).call(_value, method_name).unwrap_or_call(default_provider.bind(_value).unbind(1))
+	return safe_method_call.bindv(arguments).call(_value, method_name).unwrap_or_call(
+		default_provider.bind(_value).unbind(1),
+	)
 
 
 ## Returns [param other] when [member self] is [code]Ok[/code], otherwise [member self].
