@@ -190,6 +190,66 @@ func test_is_err_and(
 	assert_bool(result.is_err_and(func(x): return x > 1)).is_equal(expected)
 
 
+func test_is_ok_and_member(
+		result: Result,
+		member_name: StringName,
+		expected: bool,
+		_test_parameters := [
+			[Result.Ok(auto_free(CustomClass.new(42))), &"prop", true],
+			[Result.Ok(auto_free(CustomClass.new(0))), &"prop", false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"unknown_prop", false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"prop", false],
+		],
+):
+	assert_bool(result.is_ok_and_member(member_name)).is_equal(expected)
+
+
+func test_is_ok_and_method_call(
+		result: Result,
+		method_name: StringName,
+		arguments: Array,
+		expected: bool,
+		_test_parameters := [
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [2], true],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [0], false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [], false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"unknown_method", [], false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"mul_by", [2], false],
+		],
+):
+	assert_bool(result.is_ok_and_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_is_err_and_member(
+		result: Result,
+		member_name: StringName,
+		expected: bool,
+		_test_parameters := [
+			[Result.Err(auto_free(CustomClass.new(42))), &"prop", true],
+			[Result.Err(auto_free(CustomClass.new(0))), &"prop", false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"unknown_prop", false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"prop", false],
+		],
+):
+	assert_bool(result.is_err_and_member(member_name)).is_equal(expected)
+
+
+func test_is_err_and_method_call(
+		result: Result,
+		method_name: StringName,
+		arguments: Array,
+		expected: bool,
+		_test_parameters := [
+			[Result.Err(auto_free(CustomClass.new(42))), &"mul_by", [2], true],
+			[Result.Err(auto_free(CustomClass.new(42))), &"mul_by", [0], false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"mul_by", [], false],
+			[Result.Err(auto_free(CustomClass.new(42))), &"unknown_method", [], false],
+			[Result.Ok(auto_free(CustomClass.new(42))), &"mul_by", [2], false],
+		],
+):
+	assert_bool(result.is_err_and_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
 func test_pipe(
 		input: Result,
 		times_called: int,
@@ -287,6 +347,34 @@ func test_map_err(
 		],
 ):
 	assert_that(input.map_err(len)).is_equal(expected)
+
+
+func test_map_err_member(
+		input: Result,
+		member_name: StringName,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok(42), &"prop", Result.Ok(42)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"prop", Result.Err(7)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"unknown_prop", Result.Err(Result.ERR_UNSAFE_MEMBER_ACCESS)],
+		],
+):
+	assert_that(input.map_err_member(member_name)).is_equal(expected)
+
+
+func test_map_err_method_call(
+		input: Result,
+		method_name: StringName,
+		arguments: Array,
+		expected: Result,
+		_test_parameters := [
+			[Result.Ok(42), &"mul_by", [2], Result.Ok(42)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"mul_by", [2], Result.Err(14)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"mul_by", [], Result.Err(Result.ERR_UNSAFE_ARGUMENTS)],
+			[Result.Err(auto_free(CustomClass.new(7))), &"unknown_method", [], Result.Err(Result.ERR_UNSAFE_METHOD_ACCESS)],
+		],
+):
+	assert_that(input.map_err_method_call.bindv(arguments).call(method_name)).is_equal(expected)
 
 
 func test_map_or(
@@ -527,6 +615,66 @@ func test_map_method_call_or_call(
 	do_return(default).on(cb).transform(any())
 	assert_that(input.map_method_call_or_call.bindv(arguments).call(cb.transform, method_name)).is_equal(expected)
 	verify(cb, times_called).transform(input._value if times_called > 0 else any())
+
+
+func test_map_member_or_call_passes_only_x_when_access_fails():
+	var instance := auto_free(CustomClass.new(42))
+	var captured: Array = []
+	var default_provider := func(arg, extra = "<not_passed>"):
+		captured.append([arg, extra])
+		return -1
+
+	var output: Variant = Result.Ok(instance).map_member_or_call(default_provider, &"unknown_prop")
+
+	assert_that(output).is_equal(-1)
+	assert_that(captured.size()).is_equal(1)
+	assert_that(captured[0][0]).is_equal(instance)
+	assert_that(captured[0][1]).is_equal("<not_passed>")
+
+
+func test_map_method_call_or_call_passes_only_x_when_call_fails():
+	var instance := auto_free(CustomClass.new(42))
+	var captured: Array = []
+	var default_provider := func(arg, extra = "<not_passed>"):
+		captured.append([arg, extra])
+		return -1
+
+	var output: Variant = Result.Ok(instance).map_method_call_or_call(default_provider, &"unknown_method")
+
+	assert_that(output).is_equal(-1)
+	assert_that(captured.size()).is_equal(1)
+	assert_that(captured[0][0]).is_equal(instance)
+	assert_that(captured[0][1]).is_equal("<not_passed>")
+
+
+func test_map_err_member_or_call_passes_only_e_when_access_fails():
+	var instance := auto_free(CustomClass.new(42))
+	var captured: Array = []
+	var default_provider := func(arg, extra = "<not_passed>"):
+		captured.append([arg, extra])
+		return -1
+
+	var output: Variant = Result.Err(instance).map_err_member_or_call(default_provider, &"unknown_prop")
+
+	assert_that(output).is_equal(-1)
+	assert_that(captured.size()).is_equal(1)
+	assert_that(captured[0][0]).is_equal(instance)
+	assert_that(captured[0][1]).is_equal("<not_passed>")
+
+
+func test_map_err_method_call_or_call_passes_only_e_when_call_fails():
+	var instance := auto_free(CustomClass.new(42))
+	var captured: Array = []
+	var default_provider := func(arg, extra = "<not_passed>"):
+		captured.append([arg, extra])
+		return -1
+
+	var output: Variant = Result.Err(instance).map_err_method_call_or_call(default_provider, &"unknown_method")
+
+	assert_that(output).is_equal(-1)
+	assert_that(captured.size()).is_equal(1)
+	assert_that(captured[0][0]).is_equal(instance)
+	assert_that(captured[0][1]).is_equal("<not_passed>")
 
 
 func test_and_then_member(

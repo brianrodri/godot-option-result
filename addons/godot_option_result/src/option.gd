@@ -26,6 +26,11 @@ static func not_null(x: Variant) -> Option:
 	return None if x == null else Some(x)
 
 
+## Holds [code]Some(instance)[/code] when [param instance] is a valid object, otherwise [code]None[/code].
+static func valid_instance(instance: Variant) -> Option:
+	return None if not is_instance_valid(instance) else Some(instance)
+
+
 ## Reads [param member_name] from [param instance] into an [Option].
 static func from_member(instance: Variant, member_name: StringName) -> Option:
 	return Result.safe_member(instance, member_name).ok()
@@ -82,6 +87,34 @@ func is_some_and(predicate: Callable) -> bool:
 	return false
 
 
+## Returns whether [member self] is [code]Some(x)[/code] and [code]x.member[/code] is truthy.
+##
+## [codeblock]
+## self is Some(x) when x.member is truthy -> true
+## self is Some(x) when x.member is falsy  -> false
+## self is Some(x) when invalid access     -> false
+## self is None                            -> false
+## [/codeblock]
+func is_some_and_member(member_name: StringName) -> bool:
+	if _is_some:
+		return bool(from_member(_value, member_name).unwrap_or(false))
+	return false
+
+
+## Returns whether [member self] is [code]Some(x)[/code] and [code]x.method(...arguments)[/code] is truthy.
+##
+## [codeblock]
+## self is Some(x) when x.method(...arguments) is truthy -> true
+## self is Some(x) when x.method(...arguments) is falsy  -> false
+## self is Some(x) when invalid call                     -> false
+## self is None                                          -> false
+## [/codeblock]
+func is_some_and_method_call(method_name: StringName, ...arguments: Array) -> bool:
+	if _is_some:
+		return bool(from_method_call.bindv(arguments).call(_value, method_name).unwrap_or(false))
+	return false
+
+
 ## Returns whether [member self] is [code]None[/code], or [param predicate] returns truthy for the wrapped value.
 ##
 ## [codeblock]
@@ -93,6 +126,35 @@ func is_none_or(predicate: Callable) -> bool:
 	if _is_some:
 		assert(predicate.is_valid())
 		return bool(predicate.call(_value))
+	return true
+
+
+## Returns whether [member self] is [code]None[/code], or [code]x.member[/code] is truthy for the wrapped value.
+##
+## [codeblock]
+## self is Some(x) when x.member is truthy -> true
+## self is Some(x) when x.member is falsy  -> false
+## self is Some(x) when invalid access     -> false
+## self is None                            -> true
+## [/codeblock]
+func is_none_or_member(member_name: StringName) -> bool:
+	if _is_some:
+		return bool(from_member(_value, member_name).unwrap_or(false))
+	return true
+
+
+## Returns whether [member self] is [code]None[/code], or [code]x.method(...arguments)[/code] is truthy for the wrapped
+## value.
+##
+## [codeblock]
+## self is Some(x) when x.method(...arguments) is truthy -> true
+## self is Some(x) when x.method(...arguments) is falsy  -> false
+## self is Some(x) when invalid call                     -> false
+## self is None                                          -> true
+## [/codeblock]
+func is_none_or_method_call(method_name: StringName, ...arguments: Array) -> bool:
+	if _is_some:
+		return bool(from_method_call.bindv(arguments).call(_value, method_name).unwrap_or(false))
 	return true
 
 

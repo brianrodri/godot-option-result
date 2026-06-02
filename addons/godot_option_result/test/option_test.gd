@@ -102,6 +102,66 @@ func test_is_none_or(
 	assert_bool(input.is_none_or(func(x): return x > 1)).is_equal(expected)
 
 
+func test_is_some_and_member(
+		input: Option,
+		member_name: StringName,
+		expected: bool,
+		_test_parameters := [
+			[Option.Some(auto_free(CustomClass.new(42))), &"prop", true],
+			[Option.Some(auto_free(CustomClass.new(0))), &"prop", false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_prop", false],
+			[Option.None, &"prop", false],
+		],
+):
+	assert_bool(input.is_some_and_member(member_name)).is_equal(expected)
+
+
+func test_is_some_and_method_call(
+		input: Option,
+		method_name: StringName,
+		arguments: Array,
+		expected: bool,
+		_test_parameters := [
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [2], true],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [0], false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [], false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_method", [], false],
+			[Option.None, &"mul_by", [2], false],
+		],
+):
+	assert_bool(input.is_some_and_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
+func test_is_none_or_member(
+		input: Option,
+		member_name: StringName,
+		expected: bool,
+		_test_parameters := [
+			[Option.Some(auto_free(CustomClass.new(42))), &"prop", true],
+			[Option.Some(auto_free(CustomClass.new(0))), &"prop", false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_prop", false],
+			[Option.None, &"prop", true],
+		],
+):
+	assert_bool(input.is_none_or_member(member_name)).is_equal(expected)
+
+
+func test_is_none_or_method_call(
+		input: Option,
+		method_name: StringName,
+		arguments: Array,
+		expected: bool,
+		_test_parameters := [
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [2], true],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [0], false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"mul_by", [], false],
+			[Option.Some(auto_free(CustomClass.new(42))), &"unknown_method", [], false],
+			[Option.None, &"mul_by", [2], true],
+		],
+):
+	assert_bool(input.is_none_or_method_call.bindv(arguments).call(method_name)).is_equal(expected)
+
+
 func test_iterate_none():
 	var found := []
 	for value in Option.None:
@@ -374,6 +434,23 @@ func test_not_null(
 		],
 ):
 	assert_that(Option.not_null(x)).is_equal(expected)
+
+
+func test_valid_instance(
+		input: Variant,
+		is_some_expected: bool,
+		_test_parameters := [
+			[null, false],
+			[42, false],
+			[Vector3.ONE, false],
+			[auto_free(Node.new()), true],
+			[auto_free(CustomClass.new(42)), true],
+		],
+):
+	var output := Option.valid_instance(input)
+	assert_bool(output.is_some()).is_equal(is_some_expected)
+	if is_some_expected:
+		assert_that(output.unwrap()).is_equal(input)
 
 
 func test_map_member(
